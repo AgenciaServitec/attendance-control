@@ -1,0 +1,12 @@
+[
+  { "name": "Perú", "code": "PE", "dial_code": "+51", "flag": "🇵🇪" },
+  { "name": "Argentina", "code": "AR", "dial_code": "+54", "flag": "🇦🇷" },
+  { "name": "Bolivia", "code": "BO", "dial_code": "+591", "flag": "🇧🇴" },
+  { "name": "Brasil", "code": "BR", "dial_code": "+55", "flag": "🇧🇷" },
+  { "name": "Chile", "code": "CL", "dial_code": "+56", "flag": "🇨🇱" },
+  { "name": "Colombia", "code": "CO", "dial_code": "+57", "flag": "🇨🇴" },
+  { "name": "Ecuador", "code": "EC", "dial_code": "+593", "flag": "🇪🇨" },
+  { "name": "Paraguay", "code": "PY", "dial_code": "+595", "flag": "🇵🇾" },
+  { "name": "Uruguay", "code": "UY", "dial_code": "+598", "flag": "🇺🇾" },
+  { "name": "Venezuela", "code": "VE", "dial_code": "+58", "flag": "🇻🇪" }
+]

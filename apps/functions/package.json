@@ -1,12 +1,13 @@
 {
-  "name": "functions",
+  "name": "@attendance-control/functions",
   "scripts": {
-    "lint": "eslint --ext .js,.ts ",
-    "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "build": "tsc && cpx \"src/**/*.html\" lib/",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions",
-    "shell": "npm run build && firebase functions:shell",
-    "start": "npm run shell",
+    "serve": "pnpm run build && firebase emulators:start --only functions",
+    "shell": "pnpm run build && firebase functions:shell",
+    "start": "pnpm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
@@ -16,7 +17,21 @@
   "main": "lib/index.js",
   "dependencies": {
     "firebase-admin": "^12.6.0",
-    "firebase-functions": "^6.0.1"
+    "firebase-functions": "^6.0.1",
+    "@aws-sdk/client-rekognition": "^3.1069.0",
+    "@types/jest": "^30.0.0",
+    "axios": "^1.15.2",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "express": "^5.1.0",
+    "express-validation": "^4.1.1",
+    "jest": "^30.2.0",
+    "lodash": "^4.17.21",
+    "moment-timezone": "^0.6.0",
+    "mustache": "^4.2.0",
+    "nodemailer": "^8.0.7",
+    "ts-jest": "^29.4.5",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.12.0",
@@ -25,7 +40,15 @@
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.25.4",
     "firebase-functions-test": "^3.1.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "@types/cors": "^2.8.19",
+    "@types/crypto-js": "^4.2.2",
+    "@types/express": "^5.0.3",
+    "@types/lodash": "^4.17.20",
+    "@types/mustache": "^4.2.6",
+    "@types/node": "^24.9.0",
+    "@types/nodemailer": "^8.0.0",
+    "cpx": "^1.5.0"
   },
   "private": true
 }
