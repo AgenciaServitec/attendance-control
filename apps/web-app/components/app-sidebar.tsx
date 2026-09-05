@@ -53,6 +53,61 @@ const data = {
             icon: IconDashboard,
         },
         {
+            title: "Administración",
+            icon: IconAdjustments,
+            items: [
+                {
+                    title: "Empresas / Sedes",
+                    url: "/administration/organizations",
+                    icon: IconBuilding,
+                },
+                {
+                    title: "Usuarios / Alumnos",
+                    url: "/administration/users",
+                    icon: IconUsers,
+                    items: [
+                        {
+                            title: "Crear Usuario",
+                            url: "/administration/users/new",
+                            icon: IconPlus,
+                        },
+                        {
+                            title: "Lista de Usuarios",
+                            url: "/administration/users",
+                            icon: IconList,
+                        },
+                    ],
+                },
+                {
+                    title: "Dispositivos / IPs",
+                    url: "/administration/devices",
+                    icon: IconDeviceDesktop,
+                },
+                {
+                    title: "Alertas y Tolerancias",
+                    url: "/administration/alerts",
+                    icon: IconBellRinging,
+                },
+                {
+                    title: "Roles & Permisos",
+                    url: "/administration/roles",
+                    icon: IconShieldLock,
+                    items: [
+                        {
+                            title: "Crear Rol",
+                            url: "/administration/roles/new",
+                            icon: IconPlus,
+                        },
+                        {
+                            title: "Lista de Roles",
+                            url: "/administration/roles",
+                            icon: IconList,
+                        },
+                    ],
+                },
+            ],
+        },
+        {
             title: "Control de Asistencia",
             icon: IconClockCheck,
             items: [
@@ -130,62 +185,7 @@ const data = {
             title: "Reportes e Incidencias",
             url: "/reports",
             icon: IconFileAnalytics,
-        },
-        {
-            title: "Administración",
-            icon: IconAdjustments,
-            items: [
-                {
-                    title: "Empresas / Sedes",
-                    url: "/administration/organizations",
-                    icon: IconBuilding,
-                },
-                {
-                    title: "Usuarios / Alumnos",
-                    url: "/administration/users",
-                    icon: IconUsers,
-                    items: [
-                        {
-                            title: "Crear Usuario",
-                            url: "/administration/users/new",
-                            icon: IconPlus,
-                        },
-                        {
-                            title: "Lista de Usuarios",
-                            url: "/administration/users",
-                            icon: IconList,
-                        },
-                    ],
-                },
-                {
-                    title: "Dispositivos / IPs",
-                    url: "/administration/devices",
-                    icon: IconDeviceDesktop,
-                },
-                {
-                    title: "Alertas y Tolerancias",
-                    url: "/administration/alerts",
-                    icon: IconBellRinging,
-                },
-                {
-                    title: "Roles & Permisos",
-                    url: "/administration/roles",
-                    icon: IconShieldLock,
-                    items: [
-                        {
-                            title: "Crear Rol",
-                            url: "/administration/roles/new",
-                            icon: IconPlus,
-                        },
-                        {
-                            title: "Lista de Roles",
-                            url: "/administration/roles",
-                            icon: IconList,
-                        },
-                    ],
-                },
-            ],
-        },
+        }
     ],
     navSecondary: [
         {

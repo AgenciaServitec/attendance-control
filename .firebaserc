@@ -1,5 +1,29 @@
 {
   "projects": {
-    "default": "attendance-control-83a6d"
-  }
+    "default": "attendance-control-83a6d",
+    "dev": "attendance-control-dev"
+  },
+  "targets": {
+    "attendance-control-83a6d": {
+      "hosting": {
+        "app": [
+          "attendance-control-83a6d"
+        ],
+        "api": [
+          "api-servitec-time"
+        ]
+      }
+    },
+    "attendance-control-dev": {
+      "hosting": {
+        "app": [
+          "attendance-control-dev"
+        ],
+        "api": [
+          "api-servitec-time-dev"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

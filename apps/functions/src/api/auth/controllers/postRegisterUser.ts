@@ -18,7 +18,6 @@ export const postRegisterUser = async (
         documentType: payload?.document?.type,
         documentNumber: payload?.document?.number,
         email: payload?.email,
-        regionalBranch: payload?.metadata?.regionalBranch,
     });
 
     try {
@@ -64,7 +63,6 @@ export const postRegisterUser = async (
                 name: "Usuario"
             },
             status: "active" as Status,
-            regionalBranch: payload.metadata?.regionalBranch || "callao",
             extraPermissions: [],
         });
 

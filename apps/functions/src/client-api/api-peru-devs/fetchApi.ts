@@ -1,6 +1,6 @@
-import { environmentConfig } from "../../config";
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { catchAxiosError } from "../axios.utils";
+import {environmentConfig} from "../../config";
+import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
+import {catchAxiosError} from "../axios.utils";
 
 const { apiUrl } = environmentConfig["api-peru-devs"];
 
@@ -9,17 +9,17 @@ const fetch = axios.create({
 });
 
 fetch.interceptors.response.use(
-  (response) => response,
-  (error) => Promise.reject(catchAxiosError(error))
+    (response) => response,
+    (error) => Promise.reject(catchAxiosError(error))
 );
 
-export const get = <T, R = AxiosResponse<T>>(
-  pathname: string,
-  config?: AxiosRequestConfig
-): Promise<R> => fetch.get<T, R>(pathname, config);
+export const get = <T = any>(
+    pathname: string,
+    config?: AxiosRequestConfig
+): Promise<AxiosResponse<T>> => fetch.get<T>(pathname, config);
 
-export const post = <T, R = AxiosResponse<T>>(
-  pathname: string,
-  data?: unknown,
-  config?: AxiosRequestConfig
-): Promise<R> => fetch.post<T, R>(pathname, data, config);
+export const post = <T = any>(
+    pathname: string,
+    data?: unknown,
+    config?: AxiosRequestConfig
+): Promise<AxiosResponse<T>> => fetch.post<T>(pathname, data, config);

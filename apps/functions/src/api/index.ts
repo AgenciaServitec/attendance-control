@@ -3,9 +3,7 @@ import express from "express";
 import usersRoutes from "./users/routes/users.routes";
 import authRoutes from "./auth/routes/auth.routes";
 import identitiesRoutes from "./identities/routes/identities.routes";
-import assistancesRoutes, {
-  legacyCSharpRouter,
-} from "./assistances/routes/assistances.routes";
+import assistancesRoutes, {legacyCSharpRouter,} from "./assistances/routes/assistances.routes";
 import accessControlRoutes from "./access-control/routers/accessControl.routes";
 
 const app: express.Application = express();
@@ -14,7 +12,7 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 app.get("/", (req, res) =>
-  res.status(200).send("Welcome to Gobierno Regional del Callao API!").end(),
+  res.status(200).send("Welcome to Servitec Time del Callao API!").end(),
 );
 
 const v1Router = express.Router();

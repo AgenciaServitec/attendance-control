@@ -1,15 +1,10 @@
 import assert from "assert";
-import { NextFunction, Request, Response } from "express";
+import {NextFunction, Request, Response} from "express";
 import lodash from "lodash";
 
-import {
-  auth,
-  fetchCollection,
-  fetchDocument,
-  firestore,
-} from "../../../_firebase";
-import { User } from "../../../globalTypes";
-import { defaultFirestoreProps } from "../../../utils";
+import {auth, fetchCollection, fetchDocument, firestore,} from "../../../_firebase";
+import {User} from "../../../globalTypes";
+import {defaultFirestoreProps} from "../../../utils";
 
 type Params = { userId: string };
 
@@ -69,12 +64,6 @@ export const putUser = async (
         number: body.phoneNumber,
       },
       gender: body.gender,
-      vehicle: {
-        ...userFirestore.vehicle,
-        plateNumber: body.plateNumber,
-        model: body.vehicleModel,
-        color: body.vehicleColor,
-      },
     };
 
     const finalizedUser = assignUpdateProps(updatedUser);

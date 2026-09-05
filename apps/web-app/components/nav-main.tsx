@@ -36,7 +36,7 @@ export function NavMain({ items }: { items: NavItemType[] }) {
                             tooltip="Marcar Asistencia"
                             className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
                         >
-                            <Link href="/attendance/clock-in" className="flex items-center gap-2">
+                            <Link href="/attendance/new" className="flex items-center gap-2">
                                 <IconClockPlay className="size-4" />
                                 <span className="font-semibold">Marcar Asistencia</span>
                             </Link>

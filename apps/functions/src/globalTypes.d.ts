@@ -59,34 +59,183 @@ interface User extends DefaultFirestoreProps {
   profilePhoto?: Image;
   birthDate?: string;
   gender?: "male" | "female" | "other";
-  fingerprintTemplate: string | "";
-  vehicle: {
-    plateNumber: string;
+  fingerprintTemplate?: string | "";
+}
+
+interface Quotation {
+  id: string;
+  client: {
+    firstName?: string;
+    paternalSurname?: string;
+    maternalSurname?: string;
+    companyName?: string;
+    document: {
+      type: string;
+      number: string;
+    };
+    phone: Phone;
+  };
+  device: {
+    type: string;
+    brand: string;
     model: string;
     color: string;
-    status: string;
   };
+  analysis: string;
+  solutions: string;
+  recommendations: string;
+  serieNumber: string;
 }
 
-interface CompanyCore {
-  name: string;
-  ruc: string;
-  size: string;
-  address: {
-    street: string;
-    city: string;
-    country: string;
-  };
-  status: Status;
+interface Assistance extends DefaultFirestoreProps {
+  id: string;
+  createAtString: string;
+  entry: { date: string; dateTimestamp: FirebaseFirestore.Timestamp } | null;
+  outlet: { date: string } | null;
+  userId: string;
+  user: User;
+  workPlace: string | null;
+  status: "delay" | "attended" | null;
+  minutesWorked: number | 0;
 }
 
-interface RegisterTenantPayload {
-  firstName: string;
-  paternalSurname: string;
-  maternalSurname: string;
+export interface ServiceRequest extends DefaultFirestoreProps {
+  id: string;
+  status: "pending" | "inProgress" | "completed" | "cancelled";
+  client: {
+    firstName?: string;
+    paternalSurname?: string;
+    maternalSurname?: string;
+    companyName?: string;
+    document: {
+      type: "dni" | "ruc";
+      number: string;
+    };
+    phone: {
+      prefix: "+51";
+      number: string;
+    };
+    email: string;
+  };
+  location: {
+    address: string;
+    geoPoint: {
+      lat: number;
+      lng: number;
+    };
+  };
+  technicianLocation: {
+    lat: number;
+    lng: number;
+  };
+  problemDescription: string;
+  device: string;
+  estimatedPrice: number;
+  serviceType: string;
+  userId: string;
+  assignment?: string | null;
+}
+
+export interface WebServiceRequest extends DefaultFirestoreProps {
+  id: string;
+  documentType: "DNI" | "RUC" | "CE";
+  documentNumber: string;
+  fullName: string;
   email: string;
-  password?: string;
+  phoneNumber: string;
+  deviceCategory: string;
+  deviceBrand: string;
+  deviceModel: string;
+  serialNumber?: string;
+  issueDescription: string;
+  serviceMode: "technical-visit" | "store-visit";
+  department: string;
+  province: string;
+  district: string;
+  exactAddress?: string;
+  apartmentNumber?: string;
+  reference?: string;
+}
+
+interface Site extends DefaultFirestoreProps {
+  id: string;
+  name: string;
+  hostname: string;
+  status: "active" | "inactive" | "suspended";
+
+  branding: {
+    primaryColor: string;
+    textColor: string;
+    logo: Image;
+    isotype?: Image;
+  };
+
+  notifications: {
+    mainReceiver: string;
+    bccEmails: string;
+    phone: Phone;
+  };
+  customSmtp: boolean;
+  smtpConfig?: {
+    service: string;
+    user: string;
+    pass: string;
+  };
+}
+
+interface BaseEntry extends DefaultFirestoreProps {
+  id: string;
+  hostname: string;
+  status: "pending" | "attended";
+  message: string;
+  client: {
+    fullName: string;
+    firstName?: string;
+    paternalSurname?: string;
+    maternalSurname?: string;
+    email: string;
+    phone: Phone;
+    document?: Document;
+  };
+  siteId: string;
+}
+
+interface ContactEntry extends BaseEntry {
+  category: "contacts";
+  subject?: string;
+}
+
+interface SuggestionEntry extends BaseEntry {
+  category: "suggestion";
+  area: "web" | "service" | "product";
+}
+
+interface ClaimEntry extends BaseEntry {
+  category: "claim";
+  orderId?: string;
+}
+
+interface ComplaintsBookEntry extends BaseEntry {
+  category: "complaints_book";
+  details: {
+    type: "queja" | "reclamo";
+    isMinor: boolean;
+    parentDocument?: string;
+    claimedAmount: number;
+    consumerRequest: string;
+  };
+}
+
+type Entry = ContactEntry | SuggestionEntry | ClaimEntry | ComplaintsBookEntry;
+
+interface Contact extends DefaultFirestoreProps {
+  id: string;
+  email: string;
+  fullName: string;
+  firstName?: string;
+  paternalSurname?: string;
+  maternalSurname?: string;
   phone: Phone;
-  gender?: Gender;
-  company: CompanyCore;
+  secondaryPhones?: string[];
+  siteId?: string;
 }

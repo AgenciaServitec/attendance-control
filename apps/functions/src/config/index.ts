@@ -1,9 +1,9 @@
-import { config } from "./config";
+import {config} from "./config";
 
 const projectId = process.env.GCLOUD_PROJECT;
 
 const currentEnvironment =
-  projectId === "gob-regional-callao" ? "production" : "development";
+  projectId === "attendance-control-83a6d" ? "production" : "development";
 
 const isProduction = currentEnvironment === "production";
 
