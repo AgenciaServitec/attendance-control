@@ -68,6 +68,8 @@ export const postRegisterUser = async (
 
         await firestore.collection("users").doc(userId).set(userData);
 
+        await firestore.collection("organizations").doc(userId).set(userData);
+
         res.status(201).json({
             success: true,
             message: "Usuario institucional registrado correctamente en el sistema.",
