@@ -3,26 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Loader2, Search, UserPlus } from "lucide-react";
-import countryCodes from "../data-list/countries.json";
+import { Timeline, TimelineStep } from "@/components/ui/timeline";
+import { Step1PersonalInformationForm } from "@/components/login/Step1PersonalInformationForm";
+import { Step2ModeForm } from "@/components/login/Step2ModeForm";
+import { Step3DetailsForm } from "@/components/login/Step3DetailsForm";
 
 const basePersonalSchema = z.object({
   document: z.object({
@@ -80,6 +69,45 @@ const joinCompanySchema = basePersonalSchema.extend({
     .toUpperCase(),
 });
 
+const getRegisterSchema = (method: "create" | "join") => {
+  return z.object({
+    companyRuc:
+      method === "create"
+        ? z.string().min(11, "Mínimo 11 dígitos").max(11, "Máximo 11 dígitos")
+        : z.string().optional(),
+    companyBusinessName:
+      method === "create"
+        ? z.string().min(11, "Mínimo 11 dígitos").max(11, "Máximo 11 dígitos")
+        : z.string().optional(),
+    invitationCode:
+      method === "join"
+        ? z.string().min(11, "Mínimo 11 dígitos").max(11, "Máximo 11 dígitos")
+        : z.string().optional(),
+    documentNumber: z.string(),
+    firstName: z.string(),
+    paternalSurname: z.string(),
+    maternalSurname: z.string(),
+    countryCode: z.string(),
+    phoneNumber: z.string(),
+    gender: z.string(),
+  });
+};
+
+const TIMELINE_STEPS: TimelineStep[] = [
+  {
+    id: 1,
+    title: "Datos Personales",
+  },
+  {
+    id: 2,
+    title: "Modalidad",
+  },
+  {
+    id: 3,
+    title: "Detalles",
+  },
+];
+
 const registerSchema = z.discriminatedUnion("type", [
   createCompanySchema,
   joinCompanySchema,
@@ -94,6 +122,23 @@ export function RegisterForm({
   const [isSearchingDni, setIsSearchingDni] = useState(false);
   const [isSearchingRuc, setIsSearchingRuc] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Manejo de flujo de pasos UI (modifica según tus necesidades)
+  const [currentStep, setCurrentStep] = useState(1);
+  const [activeTab, setActiveTab] = useState<"create_company" | "join_company">(
+    "create_company",
+  );
+
+  // Mock states de tu interfaz original
+  const countryCodes = [{ code: "PE", dial_code: "+51" }];
+
+  const handleNextStep = () => {
+    if (currentStep < 3) setCurrentStep((prev) => prev + 1);
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) setCurrentStep((prev) => prev - 1);
+  };
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -115,8 +160,6 @@ export function RegisterForm({
       },
     },
   });
-
-  const activeTab = form.watch("type");
 
   const handleTabChange = (val: string) => {
     if (val === "create_company") {
@@ -229,371 +272,55 @@ export function RegisterForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-5", className)} {...props}>
-      <form id="register-form" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col items-center gap-2 text-center pb-1">
-            <Link href="/" className="flex flex-col items-center gap-2">
-              <div className="relative size-14 flex items-center justify-center">
-                <Image
-                  src="/logo.jpg"
-                  alt="Servitec Logo"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            </Link>
-            <h2 className="text-xl font-bold tracking-tight text-foreground">
-              Crea tu cuenta en Servitec Time
-            </h2>
-          </div>
-
-          <Tabs
-            value={activeTab}
-            onValueChange={handleTabChange}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-2 bg-muted/60">
-              <TabsTrigger
-                value="create_company"
-                className="text-xs font-bold data-[state=active]:bg-card data-[state=active]:text-primary"
-              >
-                <Building2 className="size-3.5 shrink-0" />
-                <span>Crear Empresa</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="join_company"
-                className="text-xs font-bold data-[state=active]:bg-card data-[state=active]:text-primary"
-              >
-                <UserPlus className="size-3.5 shrink-0" />
-                <span>Unirme a Empresa</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {activeTab === "create_company" && (
-            <div className="space-y-4">
-              <Controller
-                name="companyRuc"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel
-                      htmlFor="company-ruc"
-                      className="text-xs font-semibold"
-                    >
-                      RUC de la Empresa
-                    </FieldLabel>
-                    <div className="flex gap-2">
-                      <Input
-                        {...field}
-                        id="company-ruc"
-                        maxLength={11}
-                        aria-invalid={fieldState.invalid}
-                        onChange={(e) =>
-                          field.onChange(e.target.value.replace(/\D/g, ""))
-                        }
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleSearchRuc}
-                        disabled={isSearchingRuc || field.value?.length !== 11}
-                        className="px-3 shrink-0 gap-1.5 font-semibold text-xs"
-                      >
-                        {isSearchingRuc ? (
-                          <Loader2 className="size-3.5 animate-spin text-primary" />
-                        ) : (
-                          <Search className="size-3.5 text-primary" />
-                        )}
-                        <span>SUNAT</span>
-                      </Button>
-                    </div>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name="companyBusinessName"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel
-                      htmlFor="business-name"
-                      className="text-xs font-semibold"
-                    >
-                      Razón Social
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="business-name"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </div>
-          )}
-
-          {activeTab === "join_company" && (
-            <Controller
-              name="invitationCode"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel
-                    htmlFor="invitation-code"
-                    className="text-xs font-semibold"
-                  >
-                    Código de Invitación
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    id="invitation-code"
-                    aria-invalid={fieldState.invalid}
-                    onChange={(e) =>
-                      field.onChange(e.target.value.toUpperCase())
-                    }
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          )}
-
-          <Controller
-            name="document.number"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel
-                  htmlFor="dni-number"
-                  className="text-xs font-semibold text-foreground"
-                >
-                  DNI del Titular
-                </FieldLabel>
-                <div className="flex gap-2">
-                  <Input
-                    {...field}
-                    id="dni-number"
-                    maxLength={8}
-                    placeholder="87654321"
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background/50 font-mono"
-                    onChange={(e) =>
-                      field.onChange(e.target.value.replace(/\D/g, ""))
-                    }
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleSearchDni}
-                    disabled={isSearchingDni || field.value.length !== 8}
-                    className="px-3 shrink-0 gap-1.5 font-semibold text-xs"
-                  >
-                    {isSearchingDni ? (
-                      <Loader2 className="size-3.5 animate-spin text-primary" />
-                    ) : (
-                      <Search className="size-3.5 text-primary" />
-                    )}
-                    <span>Buscar</span>
-                  </Button>
-                </div>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="firstName"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel
-                  htmlFor="first-name"
-                  className="text-xs font-semibold"
-                >
-                  Nombres
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="first-name"
-                  placeholder="Nombres completados"
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background/50"
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-2">
-            <Controller
-              name="paternalSurname"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel
-                    htmlFor="paternal-surname"
-                    className="text-xs font-semibold"
-                  >
-                    Apellido Paterno
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    id="paternal-surname"
-                    placeholder="Apellido Paterno"
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background/50"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="maternalSurname"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel
-                    htmlFor="maternal-surname"
-                    className="text-xs font-semibold"
-                  >
-                    Apellido Materno
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    id="maternal-surname"
-                    placeholder="Apellido Materno"
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background/50"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+    <div
+      className={cn("flex flex-col gap-5 max-w-md mx-auto w-full", className)}
+      {...props}
+    >
+      {/* Header y Logo */}
+      <div className="flex flex-col items-center gap-2 text-center pb-1">
+        <Link href="/" className="flex flex-col items-center gap-2">
+          <div className="relative size-14 flex items-center justify-center">
+            <Image
+              src="/logo.jpg"
+              alt="Servitec Logo"
+              fill
+              className="object-contain"
+              priority
             />
           </div>
+        </Link>
+        <h2 className="text-xl font-bold tracking-tight text-foreground">
+          Crea tu cuenta en Servitec Time
+        </h2>
+      </div>
 
-          <Controller
-            name="phoneNumber"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel
-                  htmlFor="phone-number"
-                  className="text-xs font-semibold"
-                >
-                  Teléfono Móvil
-                </FieldLabel>
-                <div className="flex gap-2">
-                  <Controller
-                    name="countryCode"
-                    control={form.control}
-                    render={({ field: prefixField }) => (
-                      <Select
-                        value={prefixField.value}
-                        onValueChange={prefixField.onChange}
-                      >
-                        <SelectTrigger className="w-28 bg-background/50 border-input text-xs">
-                          <SelectValue placeholder="Código" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-card border-border">
-                          <SelectGroup>
-                            <SelectLabel>Países</SelectLabel>
-                            {countryCodes.map((country) => (
-                              <SelectItem
-                                key={country.code}
-                                value={country.dial_code}
-                              >
-                                {country.code} {country.dial_code}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  <Input
-                    {...field}
-                    id="phone-number"
-                    type="tel"
-                    placeholder="Número de teléfono móvil"
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background/50 flex-1"
-                    onChange={(e) =>
-                      field.onChange(e.target.value.replace(/\D/g, ""))
-                    }
-                  />
-                </div>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
+      {/* Timeline de Pasos */}
+      <Timeline steps={TIMELINE_STEPS} currentStep={currentStep} />
+
+      <div>
+        {currentStep === 1 && (
+          <Step1PersonalInformationForm
+            currentStep={currentStep}
+            onHandleNextStep={handleNextStep}
           />
+        )}
 
-          <Controller
-            name="gender"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel className="text-xs font-semibold">
-                  Género
-                </FieldLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="text-xs">
-                    <SelectValue placeholder="Selecciona género" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    <SelectItem value="male" className="text-xs">
-                      Masculino
-                    </SelectItem>
-                    <SelectItem value="female" className="text-xs">
-                      Femenino
-                    </SelectItem>
-                    <SelectItem value="other" className="text-xs">
-                      Otro / Prefiero no decir
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
+        {currentStep === 2 && (
+          <Step2ModeForm
+            currentStep={currentStep}
+            onHandleNextStep={handleNextStep}
+            onHandlePrevStep={handlePrevStep}
           />
+        )}
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full font-semibold transition-all hover:opacity-90 active:scale-[0.99] h-10 mt-2"
-          >
-            {isSubmitting
-              ? "Registrando..."
-              : activeTab === "create_company"
-                ? "Crear Empresa y Registrarse"
-                : "Unirme a Empresa"}
-          </Button>
-        </div>
-      </form>
+        {currentStep === 3 && (
+          <Step3DetailsForm
+            currentStep={currentStep}
+            onHandleNextStep={handleNextStep}
+            onHandlePrevStep={handlePrevStep}
+          />
+        )}
+      </div>
 
       <div className="flex flex-col gap-3 px-4 text-center">
         <p className="text-xs text-muted-foreground">

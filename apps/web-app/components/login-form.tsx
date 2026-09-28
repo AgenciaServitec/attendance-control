@@ -101,7 +101,7 @@ export function LoginForm({
           </div>
 
           {authMethod === "phone" ? (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-3">
               <Controller
                 name="countryCode"
                 control={control}
@@ -110,7 +110,10 @@ export function LoginForm({
                     data-invalid={fieldState.invalid}
                     className="col-span-1"
                   >
-                    <FieldLabel htmlFor="countryCode">
+                    <FieldLabel
+                      htmlFor="countryCode"
+                      className="text-xs font-semibold"
+                    >
                       Código de país
                     </FieldLabel>
 
@@ -148,9 +151,12 @@ export function LoginForm({
                 render={({ field, fieldState }) => (
                   <Field
                     data-invalid={fieldState.invalid}
-                    className="col-span-2"
+                    className="col-span-3"
                   >
-                    <FieldLabel htmlFor="phoneNumber">
+                    <FieldLabel
+                      htmlFor="phoneNumber"
+                      className="text-xs font-semibold"
+                    >
                       Número de teléfono
                     </FieldLabel>
 
@@ -174,7 +180,9 @@ export function LoginForm({
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
+                  <FieldLabel htmlFor="email" className="text-xs font-semibold">
+                    Correo electrónico
+                  </FieldLabel>
                   <Input
                     {...field}
                     id="email"
