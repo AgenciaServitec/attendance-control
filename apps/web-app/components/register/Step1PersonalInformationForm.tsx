@@ -1,3 +1,5 @@
+"use client";
+
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CountryCodes from "../../data-list/countries.json";
@@ -22,11 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-
-interface Props {
-  currentStep: number;
-  onHandleNextStep: () => void;
-}
+import { useRegisterStore } from "@/store/user-register-store";
 
 const schema = z.object({
   documentNumber: z
@@ -38,28 +36,29 @@ const schema = z.object({
   maternalSurname: z.string(),
   countryCode: z.string(),
   phoneNumber: z.string().min(9, "Mínimo 9 dígitos").max(9, "Mínimo 9 dígitos"),
+  email: z.string().trim().lowercase().pipe(z.email()),
 });
 
-export function Step1PersonalInformationForm({
-  currentStep,
-  onHandleNextStep,
-}: Props) {
+export function Step1PersonalInformationForm() {
   const [isSearchingDni, setIsSearchingDni] = useState(false);
+  const { formData, updateFormData, setStep } = useRegisterStore();
 
   const { handleSubmit, control } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      documentNumber: "",
-      firstName: "",
-      paternalSurname: "",
-      maternalSurname: "",
+      documentNumber: formData.documentNumber || "",
+      firstName: formData.firstName || "",
+      paternalSurname: formData.paternalSurname || "",
+      maternalSurname: formData.maternalSurname || "",
       countryCode: "+51",
-      phoneNumber: "",
+      phoneNumber: formData.phoneNumber || "",
+      email: formData.email || "",
     },
   });
 
   const onSubmit = (formData: z.infer<typeof schema>) => {
-    onHandleNextStep();
+    updateFormData({ ...formData, documentType: "dni" });
+    setStep(2);
     console.log(formData);
   };
 
@@ -246,6 +245,27 @@ export function Step1PersonalInformationForm({
               )}
             />
           </div>
+
+          <Controller
+            name="email"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState?.invalid}>
+                <FieldLabel htmlFor="email" className="text-xs font-semibold">
+                  Correo electrónico
+                </FieldLabel>
+                <Input
+                  {...field}
+                  type="email"
+                  id="email"
+                  aria-invalid={fieldState?.invalid}
+                />
+                {fieldState?.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
         </FieldGroup>
       </FieldSet>
 
