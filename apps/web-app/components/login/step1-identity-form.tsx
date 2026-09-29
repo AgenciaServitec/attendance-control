@@ -19,15 +19,33 @@ import { Dispatch, SetStateAction } from "react";
 interface Props {
   method: "phone" | "email";
   onSetMethod: Dispatch<SetStateAction<"phone" | "email">>;
+  onHandleSendOtp: (data: { identifier: string }) => void;
 }
 
-const schema = z.object({
-  countryCode: z.string(),
-  phoneNumber: z.string().min(9, "Mínimo 9 dígitos").max(9, "Mínimo 9 dígitos"),
-  email: z.string().trim().lowercase().pipe(z.email()),
-});
+const getIdentitySchema = (method: "phone" | "email") => {
+  return z.object({
+    countryCode:
+      method === "phone"
+        ? z.string().min(1, "Campo obligatorio")
+        : z.string().optional(),
+    phoneNumber:
+      method === "phone"
+        ? z.string().min(9, "Mínimo 9 dígitos").max(9, "Mínimo 9 dígitos")
+        : z.string().optional(),
+    email:
+      method === "email"
+        ? z.string().trim().lowercase().pipe(z.email())
+        : z.string().optional(),
+  });
+};
 
-export function Step1IdentityForm({ method, onSetMethod }: Props) {
+export function Step1IdentityForm({
+  method,
+  onSetMethod,
+  onHandleSendOtp,
+}: Props) {
+  const schema = getIdentitySchema(method);
+
   const { handleSubmit, control } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -37,8 +55,21 @@ export function Step1IdentityForm({ method, onSetMethod }: Props) {
     },
   });
 
-  const onSubmit = () => {
-    console.log("submit");
+  const onSubmit = (formData: z.infer<typeof schema>) => {
+    let identifier = "";
+
+    if (method === "phone") {
+      const code = formData.countryCode || "+51";
+      const phone = formData.phoneNumber?.trim() || "";
+      const cleanPhone = phone.startsWith("+") ? phone : `${code}${phone}`;
+      identifier = cleanPhone;
+    } else {
+      identifier = formData.email?.trim() || "";
+    }
+
+    if (!identifier) return;
+
+    onHandleSendOtp({ identifier });
   };
 
   return (

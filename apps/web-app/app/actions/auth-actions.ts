@@ -2,17 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { registerSchema } from "@/lib/schemas/auth";
+import {
+  registerSchema,
+  requestLoginOtpSchema,
+  verifyLoginOtpSchema,
+} from "@/lib/schemas/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type ActionResponse = {
   success?: boolean;
   error?: string;
 };
 
-/**
- * 1. REGISTRO COMPLETO (Usuario + Empresa)
- * Recibe el JSON acumulado de tu sessionStorage desde el Step 3.
- */
 export async function registerUserAndOrganization(
   rawPayload: unknown,
 ): Promise<ActionResponse> {
@@ -26,7 +27,8 @@ export async function registerUserAndOrganization(
   }
 
   const data = validation.data;
-  const supabase = await createClient();
+
+  const adminSupabase = createAdminClient();
 
   const userEmail =
     data.type === "create_company" && data.email
@@ -35,18 +37,20 @@ export async function registerUserAndOrganization(
 
   const randomPassword = crypto.randomUUID();
 
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: userEmail,
-    password: randomPassword,
-    options: {
-      data: {
+  const { data: authData, error: authError } =
+    await adminSupabase.auth.admin.createUser({
+      email: userEmail,
+      phone: `${data.countryCode}${data.phoneNumber}`,
+      password: randomPassword,
+      email_confirm: true,
+      phone_confirm: true,
+      user_metadata: {
         first_name: data.firstName,
         paternal_surname: data.paternalSurname,
         maternal_surname: data.maternalSurname,
         document_number: data.documentNumber,
       },
-    },
-  });
+    });
 
   if (authError || !authData.user) {
     return {
@@ -56,7 +60,7 @@ export async function registerUserAndOrganization(
 
   const userId = authData.user.id;
 
-  const { error: profileError } = await supabase.from("profiles").insert({
+  const { error: profileError } = await adminSupabase.from("profiles").insert({
     id: userId,
     first_name: data.firstName,
     paternal_surname: data.paternalSurname,
@@ -77,7 +81,7 @@ export async function registerUserAndOrganization(
   let targetOrganizationId: string;
 
   if (data.type === "create_company") {
-    const { data: newOrg, error: orgError } = await supabase
+    const { data: newOrg, error: orgError } = await adminSupabase
       .from("organizations")
       .insert({
         ruc: data.company.ruc,
@@ -96,7 +100,7 @@ export async function registerUserAndOrganization(
 
     targetOrganizationId = newOrg.id;
   } else {
-    const { data: existingOrg, error: findError } = await supabase
+    const { data: existingOrg, error: findError } = await adminSupabase
       .from("organizations")
       .select("id")
       .eq("invitation_code", data.invitationCode)
@@ -111,7 +115,7 @@ export async function registerUserAndOrganization(
     targetOrganizationId = existingOrg.id;
   }
 
-  const { error: memberError } = await supabase
+  const { error: memberError } = await adminSupabase
     .from("organization_members")
     .insert({
       user_id: userId,
@@ -131,47 +135,92 @@ export async function registerUserAndOrganization(
   return { success: true };
 }
 
-/**
- * 2. LOGIN PASO 1: Solicitar código OTP (SMS o Email)
- */
-export async function sendLoginOtp(
-  identifier: string,
-  method: "phone" | "email",
-): Promise<ActionResponse> {
-  const supabase = await createClient();
+export async function sendLoginOtp(rawPayload: unknown) {
+  const validation = requestLoginOtpSchema.safeParse(rawPayload);
 
-  if (method === "phone") {
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: identifier,
-    });
-    if (error) return { error: error.message };
-  } else {
-    const { error } = await supabase.auth.signInWithOtp({
-      email: identifier,
-    });
-    if (error) return { error: error.message };
+  if (!validation.success) {
+    return {
+      error: validation.error.issues[0]?.message || "Identificador inválido.",
+    };
   }
 
-  return { success: true };
-}
-
-/**
- * 3. LOGIN PASO 2: Verificar código OTP de 6 dígitos
- */
-export async function verifyLoginOtp(
-  identifier: string,
-  token: string,
-  method: "phone" | "email",
-): Promise<ActionResponse> {
+  const identifier = validation.data.identifier.trim();
+  const isEmail = identifier.includes("@");
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.verifyOtp({
-    ...(method === "phone" ? { phone: identifier } : { email: identifier }),
-    token,
-    type: method === "phone" ? "sms" : "email",
-  });
+  if (isEmail) {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: identifier,
+      options: {
+        shouldCreateUser: false,
+      },
+    });
 
-  if (error) {
+    if (error) {
+      return {
+        error:
+          "No pudimos enviar el código al correo. Verifica que estés registrado.",
+      };
+    }
+  } else {
+    let phone = identifier.replace(/\s+/g, "");
+
+    if (!phone.startsWith("+")) {
+      phone = `+51${phone}`;
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({
+      phone,
+      options: {
+        shouldCreateUser: false,
+      },
+    });
+
+    if (error) {
+      return {
+        error:
+          "No encontramos una cuenta registrada con este número de teléfono.",
+      };
+    }
+  }
+
+  return { success: true, isEmail };
+}
+
+export async function verifyLoginOtp(rawPayload: unknown) {
+  const validation = verifyLoginOtpSchema.safeParse(rawPayload);
+
+  if (!validation.success) {
+    return { error: validation.error.issues[0]?.message || "Datos inválidos." };
+  }
+
+  const identifier = validation.data.identifier.trim();
+  const { token } = validation.data;
+  const isEmail = identifier.includes("@");
+  const supabase = await createClient();
+
+  let result;
+
+  if (isEmail) {
+    result = await supabase.auth.verifyOtp({
+      email: identifier,
+      token,
+      type: "email",
+    });
+  } else {
+    let phone = identifier.replace(/\s+/g, "");
+    if (!phone.startsWith("+")) {
+      phone = `+51${phone}`;
+    }
+
+    result = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: "sms",
+    });
+  }
+
+  if (result.error || !result.data.session) {
     return { error: "Código de verificación incorrecto o expirado." };
   }
 
@@ -179,9 +228,6 @@ export async function verifyLoginOtp(
   return { success: true };
 }
 
-/**
- * 4. LOGOUT
- */
 export async function logout(): Promise<ActionResponse> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signOut();

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { getCurrentUser } from "@/lib/supabase/get-user";
+import { UserStoreInitializer } from "@/providers/user-store-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,12 +20,15 @@ export const metadata: Metadata = {
   icons: "/favicon.svg",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const user = await getCurrentUser();
+
   return (
     <html
       lang="es"
       className={`light ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <UserStoreInitializer user={user} />
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

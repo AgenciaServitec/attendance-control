@@ -16,13 +16,19 @@ interface Props {
   method: "phone" | "email";
   onSetMethod: Dispatch<SetStateAction<"phone" | "email">>;
   onSetCurrentStep: Dispatch<SetStateAction<1 | 2>>;
+  onHandleVerifyOtp: (data: { token: string }) => void;
 }
 
 const schema = z.object({
   otp: z.string().min(6, "Mínimo 6 dígitos").max(6, "Mínimo 6 dígitos"),
 });
 
-export function Step2OtpForm({ method, onSetMethod, onSetCurrentStep }: Props) {
+export function Step2OtpForm({
+  method,
+  onSetMethod,
+  onSetCurrentStep,
+  onHandleVerifyOtp,
+}: Props) {
   const { handleSubmit, control, watch, trigger } = useForm<
     z.infer<typeof schema>
   >({
@@ -32,25 +38,8 @@ export function Step2OtpForm({ method, onSetMethod, onSetCurrentStep }: Props) {
     },
   });
 
-  const formValues = watch();
-
-  // Avanzar de Step 1 -> Step 2
-  // const handleContinue = async () => {
-  //   const isValid = await trigger();
-  //   if (isValid) {
-  //     // AQUÍ: Puedes invocar tu API para enviar el OTP por SMS o Mail
-  //     console.log(
-  //       "Enviando OTP a:",
-  //       method === "phone"
-  //         ? `${formValues.countryCode}${formValues.phoneNumber}`
-  //         : formValues.email,
-  //     );
-  //     setResendTimer(30);
-  //     setCurrentStep(2);
-  //   }
-  // };
-
-  const onSubmit = () => {
+  const onSubmit = (formData: z.infer<typeof schema>) => {
+    onHandleVerifyOtp({ token: formData.otp });
     console.log("submit");
   };
 
@@ -118,7 +107,6 @@ export function Step2OtpForm({ method, onSetMethod, onSetCurrentStep }: Props) {
 
         <div className="grid grid-cols-2 mt-3 gap-3">
           <Button
-            type="submit"
             variant="outline"
             onClick={() => ""}
             className="font-semibold text-xs"

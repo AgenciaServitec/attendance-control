@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { TimelineStep } from "@/components/ui/timeline";
 import { Step1IdentityForm } from "@/components/login/step1-identity-form";
 import { Step2OtpForm } from "@/components/login/step2-otp-form";
+import { useRouter } from "next/navigation";
+import { sendLoginOtp, verifyLoginOtp } from "@/app/actions/auth-actions";
 
 const GREETINGS = [
   "¡Listos para registrar tu día!",
@@ -24,6 +25,12 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [authMethod, setAuthMethod] = useState<"phone" | "email">("phone");
+
+  const [activeIdentifier, setActiveIdentifier] = useState("");
+  const [isEmailType, setIsEmailType] = useState(true);
+  const [isPending, startTransition] = useTransition();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const router = useRouter();
 
   const [greetingIndex, setGreetingIndex] = useState(0);
   const [fade, setFade] = useState(true);
@@ -82,7 +89,6 @@ export function LoginForm({
     otp: z.string().length(6, "El código OTP debe tener 6 dígitos."),
   });
 
-  // Selección dinámica de validación según el Step y Método
   const activeSchema =
     currentStep === 2
       ? loginStep2Schema
@@ -102,52 +108,38 @@ export function LoginForm({
     },
   });
 
-  const formValues = watch();
+  const handleSendOtp = (data: { identifier: string }) => {
+    setServerError(null);
+    startTransition(async () => {
+      const res = await sendLoginOtp({ identifier: data.identifier });
 
-  // Avanzar de Step 1 -> Step 2
-  const handleContinue = async () => {
-    const isValid = await trigger();
-    if (isValid) {
-      // AQUÍ: Puedes invocar tu API para enviar el OTP por SMS o Mail
-      console.log(
-        "Enviando OTP a:",
-        authMethod === "phone"
-          ? `${formValues.countryCode}${formValues.phoneNumber}`
-          : formValues.email,
-      );
-      setResendTimer(30);
+      if (res.error) {
+        setServerError(res.error);
+        return;
+      }
+
+      setActiveIdentifier(data.identifier);
+      setIsEmailType(!!res.isEmail);
       setCurrentStep(2);
-    }
-  };
-
-  // Enviar el formulario final en Step 2
-  const onSubmit = (formData: FormData) => {
-    console.log("Payload enviado al backend:", {
-      method: authMethod,
-      identifier:
-        authMethod === "phone"
-          ? `${formData.countryCode}${formData.phoneNumber}`
-          : formData.email,
-      otp: formData.otp,
     });
-    alert("¡Sesión iniciada correctamente!");
   };
 
-  const handleResendOtp = () => {
-    setResendTimer(30);
-    console.log("Reenviando código OTP...");
-  };
+  const handleVerifyOtp = (data: { token: string }) => {
+    setServerError(null);
+    startTransition(async () => {
+      const res = await verifyLoginOtp({
+        identifier: activeIdentifier,
+        token: data.token,
+      });
 
-  const TIMELINE_STEPS: TimelineStep[] = [
-    {
-      id: 1,
-      title: "Identificación",
-    },
-    {
-      id: 2,
-      title: "Verificación",
-    },
-  ];
+      if (res.error) {
+        setServerError(res.error);
+        return;
+      }
+
+      router.push("/dashboard");
+    });
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -173,7 +165,11 @@ export function LoginForm({
         </div>
 
         {currentStep === 1 && (
-          <Step1IdentityForm method={authMethod} onSetMethod={setAuthMethod} />
+          <Step1IdentityForm
+            method={authMethod}
+            onSetMethod={setAuthMethod}
+            onHandleSendOtp={handleSendOtp}
+          />
         )}
 
         {currentStep === 2 && (
@@ -181,6 +177,7 @@ export function LoginForm({
             method={authMethod}
             onSetMethod={setAuthMethod}
             onSetCurrentStep={setCurrentStep}
+            onHandleVerifyOtp={handleVerifyOtp}
           />
         )}
       </div>
