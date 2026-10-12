@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 export async function getCurrentUser() {
   const supabase = await createClient();
 
-  // 1. Obtener la sesión activa
   const {
     data: { user },
     error: authError,
@@ -13,7 +12,6 @@ export async function getCurrentUser() {
     return null;
   }
 
-  // 2. Traer la información extendida desde 'profiles' y la organización
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
@@ -39,5 +37,8 @@ export async function getCurrentUser() {
       : user.email?.split("@")[0] || "Usuario",
     role: member?.role || "member",
     organization: member?.organization || null,
+    // Mapeo de URLs de fotos
+    avatarUrl: profile?.avatar_url || null,
+    coverUrl: profile?.cover_url || null,
   };
 }

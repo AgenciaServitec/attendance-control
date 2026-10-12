@@ -32,13 +32,9 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useUserStore } from "@/store/use-user-store";
 
 const data = {
-  user: {
-    name: "Angel Gala",
-    email: "angel@servitec.pe",
-    avatar: "/avatars/user.jpg",
-  },
   organizations: [
     {
       name: "Servitec Perú S.A.C.",
@@ -207,6 +203,8 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = useUserStore((state) => state.user);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -220,7 +218,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );
