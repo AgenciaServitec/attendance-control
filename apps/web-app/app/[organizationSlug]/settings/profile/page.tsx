@@ -12,6 +12,7 @@ import {
   IconDeviceFloppy,
   IconLock,
   IconPhone,
+  IconScan,
   IconShieldCheck,
   IconUser,
 } from "@tabler/icons-react";
@@ -22,6 +23,8 @@ import {
   updateContactInfo,
   uploadProfileImage,
 } from "@/app/actions/profile-actions";
+import { LivenessDetector } from "@/components/liveness-detector";
+import { enrollUserFace } from "@/app/actions/biometric-actions";
 
 export default function ProfilePage() {
   const user = useUserStore((state) => state.user);
@@ -32,7 +35,14 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "activity">("info");
+  const [activeTab, setActiveTab] = useState<
+    "info" | "biometrics" | "activity"
+  >("info");
+
+  // Estados de enrolamiento facial
+  const [facialEnrolled, setFacialEnrolled] = useState(false);
+  const [facialError, setFacialError] = useState<string | null>(null);
+  const [isSavingFace, setIsSavingFace] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -83,11 +93,40 @@ export default function ProfilePage() {
     }
   };
 
+  const handleFacialSuccess = async (referenceImage: any) => {
+    if (!user) return;
+    setIsSavingFace(true);
+    setFacialError(null);
+
+    try {
+      // Si AWS devuelve los bytes de la imagen de referencia durante la prueba de vida
+      if (referenceImage?.Bytes) {
+        const res = await enrollUserFace({
+          userId: user.id,
+          orgSlug: user.organization?.slug || "default",
+          referenceImageBytes: referenceImage.Bytes,
+        });
+
+        if (res.success) {
+          setFacialEnrolled(true);
+        } else {
+          setFacialError(res.error || "No se pudo indexar el rostro.");
+        }
+      } else {
+        setFacialEnrolled(true);
+      }
+    } catch (err: any) {
+      setFacialError(err.message || "Error al asociar la firma biométrica.");
+    } finally {
+      setIsSavingFace(false);
+    }
+  };
+
   return (
     <div className="w-full flex flex-col gap-6">
-      {/* 1. HEADER Y PORTADA ESTILO PORTFOLIA (Efecto Marco Curvo Integrado) */}
+      {/* 1. HEADER Y PORTADA ESTILO PORTFOLIA */}
       <div className="w-full rounded-[28px] border border-border/80 bg-card overflow-hidden">
-        {/* Banner de Gradiente Suave con Difuminado */}
+        {/* Banner de Gradiente Suave */}
         <div className="h-48 sm:h-60 w-full bg-gradient-to-r from-blue-600/25 via-indigo-500/20 to-purple-600/25 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.2),transparent_70%)]" />
 
@@ -96,10 +135,9 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        {/* Sección de Identidad de Usuario con la Envoltura Curva estilo Portfolia */}
+        {/* Identidad del Usuario */}
         <div className="px-6 sm:px-8 pb-6 pt-0 relative flex flex-col md:flex-row md:items-end justify-between gap-6 -mt-20 sm:-mt-24">
           <div className="flex flex-col sm:flex-row sm:items-end gap-6">
-            {/* CONTENEDOR CURVO CON BORDE TRANSLÚCIDO E INTEGRADO (Inspirado en la Guía) */}
             <div className="relative group shrink-0">
               <div className="p-2.5 rounded-[36px] bg-card/80 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-sm">
                 <Avatar className="size-32 sm:size-40 rounded-[28px] bg-neutral-900 text-3xl">
@@ -114,7 +152,6 @@ export default function ProfilePage() {
                 </Avatar>
               </div>
 
-              {/* Botón Flotante para Cambiar Foto */}
               <button
                 onClick={() => setShowAvatarUpload(!showAvatarUpload)}
                 className="absolute bottom-2 right-2 size-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-card shadow-sm hover:scale-105 transition-transform"
@@ -124,7 +161,6 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            {/* Nombre e Información Principal */}
             <div className="flex flex-col gap-1.5 pb-1">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
@@ -155,7 +191,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Estado Rápido / Estadísticas Integradas */}
           <div className="flex items-center gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-border/80">
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground font-medium">
@@ -175,7 +210,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* NAVEGACIÓN INTERNA TIPO TABS (Estilo Referencia Portfolia) */}
+        {/* NAVEGACIÓN INTERNA TIPO TABS */}
         <div className="px-6 sm:px-8 border-t border-border/80 flex items-center gap-6 text-xs font-semibold">
           <button
             onClick={() => setActiveTab("info")}
@@ -186,6 +221,16 @@ export default function ProfilePage() {
             }`}
           >
             Información General
+          </button>
+          <button
+            onClick={() => setActiveTab("biometrics")}
+            className={`py-3.5 border-b-2 transition-colors relative ${
+              activeTab === "biometrics"
+                ? "border-primary text-primary font-bold"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Biometría Facial
           </button>
           <button
             onClick={() => setActiveTab("activity")}
@@ -217,7 +262,7 @@ export default function ProfilePage() {
           onSubmit={handleSaveText}
           className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
         >
-          {/* COLUMNA IZQUIERDA: Identidad Legal (Solo Lectura) */}
+          {/* Identidad Legal */}
           <div className="lg:col-span-5 rounded-2xl border border-border/80 bg-card p-6 flex flex-col gap-5">
             <div className="flex items-center justify-between border-b border-border/80 pb-3">
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -251,7 +296,9 @@ export default function ProfilePage() {
               </Label>
               <Input
                 disabled
-                value={`${user?.paternalSurname || "Gala"} ${user?.maternalSurname || "Flores"}`}
+                value={`${user?.paternalSurname || "Gala"} ${
+                  user?.maternalSurname || "Flores"
+                }`}
                 className="h-9 text-xs bg-muted/40 font-medium text-muted-foreground cursor-not-allowed"
               />
             </div>
@@ -268,7 +315,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* COLUMNA DERECHA: Contacto y Configuración (Editable) */}
+          {/* Contacto y Configuración */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             <div className="rounded-2xl border border-border/80 bg-card p-6 flex flex-col gap-5">
               <div className="border-b border-border/80 pb-3">
@@ -313,7 +360,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Acción de Guardar Cambios */}
             <div className="flex items-center justify-between p-4 rounded-2xl border border-border/80 bg-card">
               <span className="text-xs text-muted-foreground">
                 Recuerda guardar los cambios realizados.
@@ -339,7 +385,84 @@ export default function ProfilePage() {
         </form>
       )}
 
-      {/* PESTAÑA SECUNDARIA */}
+      {/* PESTAÑA: BIOMETRÍA FACIAL (ENROLAMIENTO INICIAL) */}
+      {activeTab === "biometrics" && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-5 rounded-2xl border border-border/80 bg-card p-6 flex flex-col gap-4">
+            <div className="border-b border-border/80 pb-3">
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <IconScan className="size-4 text-primary" />
+                Enrolamiento Biométrico Facial
+              </h2>
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Registra tu patrón facial mediante la prueba de vida de AWS
+              Rekognition para poder marcar asistencia en las sedes
+              corporativas.
+            </p>
+
+            <div className="p-4 rounded-xl border border-border/80 bg-muted/30 flex flex-col gap-2">
+              <span className="text-xs font-semibold text-foreground">
+                Recomendaciones:
+              </span>
+              <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                <li>Usa un entorno bien iluminado.</li>
+                <li>Mira fijamente a la cámara sin gafas oscuras ni gorra.</li>
+                <li>Mantén una expresión neutral.</li>
+              </ul>
+            </div>
+
+            {facialEnrolled && (
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2">
+                <IconCheck className="size-4 shrink-0" />
+                <span>Rostro de referencia registrado correctamente.</span>
+              </div>
+            )}
+          </div>
+
+          <div className="lg:col-span-7 rounded-2xl border border-border/80 bg-card p-6 flex flex-col gap-4">
+            {facialEnrolled ? (
+              <div className="flex flex-col items-center justify-center p-8 gap-3 text-center">
+                <div className="size-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <IconCheck className="size-6" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-bold text-foreground">
+                    Enrolamiento completado
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Tu rostro ya está vinculado para las marcaciones de entrada
+                    y salida.
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFacialEnrolled(false)}
+                  className="mt-2 text-xs font-semibold"
+                >
+                  Volver a registrar rostro
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <LivenessDetector
+                  onSuccess={handleFacialSuccess}
+                  onError={(msg) => setFacialError(msg)}
+                />
+                {facialError && (
+                  <p className="text-xs font-bold text-destructive">
+                    {facialError}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* PESTAÑA: HISTORIAL */}
       {activeTab === "activity" && (
         <div className="rounded-2xl border border-border/80 bg-card p-8 flex flex-col items-center justify-center text-center gap-2">
           <p className="text-sm font-semibold text-foreground">

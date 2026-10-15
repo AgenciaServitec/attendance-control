@@ -48,12 +48,12 @@ export function SiteHeader() {
     : "U";
 
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between border-b-2 border-border bg-card px-4 lg:px-6 transition-all">
+    <header className="flex h-12 shrink-0 items-center justify-between border-b-2 border-border bg-card px-4 lg:px-6 transition-all rounded-t-xl">
       {/* LADO IZQUIERDO: Trigger + Contexto */}
       <div className="flex items-center gap-3">
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
 
-        <Separator orientation="vertical" className="h-5 bg-border" />
+        <Separator orientation="vertical" className="bg-border" />
 
         <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground bg-muted px-2.5 py-1.5 rounded-md border-2 border-border/50">
           <Users className="size-4 text-primary" />
@@ -70,7 +70,7 @@ export function SiteHeader() {
 
         <Separator
           orientation="vertical"
-          className="h-5 bg-border hidden sm:block"
+          className="bg-border hidden sm:block"
         />
 
         <DropdownMenu>

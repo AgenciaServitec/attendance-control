@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Building2,
-  Camera,
   Check,
   Clock,
   LogIn,
@@ -15,6 +14,8 @@ import {
   QrCode,
   ScanFace,
 } from "lucide-react";
+
+import { LivenessDetector } from "@/components/liveness-detector";
 
 type Method = "gps" | "facial" | "qr";
 
@@ -50,6 +51,11 @@ export default function AttendanceNewPage() {
   const [isInsideGeofence] = useState(true);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState<"Entrada" | "Salida" | null>(null);
+
+  // Guardamos si la prueba biométrica de AWS fue aprobada con éxito
+  const [livenessVerified, setLivenessVerified] = useState(false);
+  const [livenessError, setLivenessError] = useState<string | null>(null);
+
   const [marks, setMarks] = useState<{
     entrada: string | null;
     salida: string | null;
@@ -85,7 +91,10 @@ export default function AttendanceNewPage() {
       })
     : "";
 
-  const blocked = method === "gps" && !isInsideGeofence;
+  // En GPS requiere estar en geocerca, en facial requiere pasar la prueba Liveness
+  const blocked =
+    (method === "gps" && !isInsideGeofence) ||
+    (method === "facial" && !livenessVerified);
 
   const handleClockIn = () => {
     const type = nextType;
@@ -103,6 +112,7 @@ export default function AttendanceNewPage() {
       );
       setLoading(false);
       setDone(type);
+      setLivenessVerified(false); // Reiniciar estado
       setTimeout(() => setDone(null), 3500);
     }, 1200);
   };
@@ -111,7 +121,7 @@ export default function AttendanceNewPage() {
 
   return (
     <div className="w-full flex flex-col gap-5 sm:gap-6">
-      {/* 1. INFORMACIÓN DE LA SEDE Y ESTADO (Flexible y responsive) */}
+      {/* 1. INFORMACIÓN DE LA SEDE Y ESTADO */}
       <Card className="rounded-2xl border-2 border-border shadow-none p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card">
         <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
           <div className="size-10 rounded-xl bg-neutral-900 text-white dark:bg-foreground dark:text-background border-2 border-border flex items-center justify-center font-bold shrink-0">
@@ -141,7 +151,7 @@ export default function AttendanceNewPage() {
       {/* 2. MÓDULO PRINCIPAL DE MARCAJE */}
       <Card className="rounded-2xl sm:rounded-3xl border-2 border-border shadow-none overflow-hidden bg-card p-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 w-full">
-          {/* PANEL IZQUIERDO: Reloj e Historial de Marcación */}
+          {/* PANEL IZQUIERDO: Reloj e Historial */}
           <div className="lg:col-span-5 bg-neutral-900 dark:bg-card text-white p-5 sm:p-7 lg:p-8 flex flex-col justify-between gap-6 sm:gap-8 border-b-2 lg:border-b-0 lg:border-r-2 border-border">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-bold text-neutral-400">
@@ -161,7 +171,7 @@ export default function AttendanceNewPage() {
               </span>
             </div>
 
-            {/* Fichas de Registro de Entrada y Salida */}
+            {/* Registros de hoy */}
             <div className="flex flex-col gap-3">
               <span className="text-xs font-bold text-neutral-400">
                 Registros de hoy
@@ -202,7 +212,7 @@ export default function AttendanceNewPage() {
                 </p>
               </div>
 
-              {/* Selector Adaptable en Móviles */}
+              {/* Selector de Método */}
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 bg-muted rounded-xl border-2 border-border w-full">
                 {METHODS.map(({ id, label, icon: Icon }) => {
                   const active = method === id;
@@ -210,7 +220,11 @@ export default function AttendanceNewPage() {
                     <button
                       key={id}
                       type="button"
-                      onClick={() => setMethod(id)}
+                      onClick={() => {
+                        setMethod(id);
+                        setLivenessVerified(false);
+                        setLivenessError(null);
+                      }}
                       className={`flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg py-2.5 px-2 sm:px-3 text-xs font-bold transition-all min-w-0 ${
                         active
                           ? "bg-primary text-primary-foreground border-2 border-primary"
@@ -225,8 +239,8 @@ export default function AttendanceNewPage() {
               </div>
             </div>
 
-            {/* Visualizador de Escáner / GPS */}
-            <div className="flex-1 flex flex-col justify-center min-h-[150px] sm:min-h-[170px]">
+            {/* Visualizador de Escáner / GPS / AWS Liveness */}
+            <div className="flex-1 flex flex-col justify-center min-h-[180px]">
               {method === "gps" && (
                 <div
                   className={`flex flex-col justify-center gap-2 rounded-xl sm:rounded-2xl p-5 sm:p-6 border-2 text-white transition-all ${
@@ -244,13 +258,39 @@ export default function AttendanceNewPage() {
                 </div>
               )}
 
+              {/* AQUÍ CONECTAMOS AMAZON REKOGNITION FACE LIVENESS */}
               {method === "facial" && (
-                <div className="relative flex h-40 sm:h-48 items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 border-2 border-border text-white overflow-hidden p-4">
-                  <ScanFrame />
-                  <Camera className="size-8 text-neutral-500 shrink-0" />
-                  <span className="absolute bottom-3 rounded-md bg-neutral-800 px-3 py-1 text-xs font-bold text-neutral-300 border border-neutral-700 text-center max-w-[90%] truncate">
-                    Mira de frente a la cámara
-                  </span>
+                <div className="w-full flex flex-col gap-2">
+                  {livenessVerified ? (
+                    <div className="p-4 rounded-2xl bg-emerald-600 border-2 border-emerald-700 text-white flex items-center gap-3">
+                      <Check className="size-6 shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">
+                          Prueba Biométrica Aprobada
+                        </span>
+                        <span className="text-[11px] opacity-90">
+                          Rostro real verificado por AWS Rekognition.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <LivenessDetector
+                      onSuccess={(referenceImage) => {
+                        setLivenessVerified(true);
+                        setLivenessError(null);
+                      }}
+                      onError={(msg) => {
+                        setLivenessVerified(false);
+                        setLivenessError(msg);
+                      }}
+                    />
+                  )}
+
+                  {livenessError && (
+                    <p className="text-xs font-bold text-red-500 mt-1">
+                      {livenessError}
+                    </p>
+                  )}
                 </div>
               )}
 
