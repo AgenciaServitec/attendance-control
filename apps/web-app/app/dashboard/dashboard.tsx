@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AdminDashboard } from "@/app/(dashboard)/dashboard/adminDashboard";
-import { EmployeeDashboard } from "@/app/(dashboard)/dashboard/employeeDashboard";
+import { AdminDashboard } from "@/app/dashboard/adminDashboard";
+import { EmployeeDashboard } from "@/app/dashboard/employeeDashboard";
 
 export function DashboardClient() {
   const [userRole] = useState<"admin" | "employee">("admin");

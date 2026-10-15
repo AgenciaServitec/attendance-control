@@ -3,7 +3,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SiteHeader } from "@/components/side-header";
 
-export default function DashboardLayout({
+export default function OrgDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -13,15 +13,17 @@ export default function DashboardLayout({
       <SidebarProvider
         style={
           {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
+            "--sidebar-width": "calc(var(--spacing) * 68)",
+            "--header-height": "calc(var(--spacing) * 14)",
           } as React.CSSProperties
         }
       >
         <AppSidebar variant="inset" />
-        <SidebarInset>
+        <SidebarInset className="bg-background">
           <SiteHeader />
-          <div className="p-4 md:p-6">{children}</div>
+          <main className="p-4 md:p-6 w-full flex-1 overflow-x-hidden">
+            {children}
+          </main>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
