@@ -10,7 +10,7 @@ export function createAdminClient() {
     );
   }
 
-  // Se utiliza createClient nativo para bypass de RLS y operaciones admin de Auth
+  // Se utiliza createClient nativo para bypass de RLS y operaciones administration de Auth
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,

@@ -6,56 +6,38 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Building2,
+  Camera,
   Check,
   Clock,
   LogIn,
   LogOut,
-  MapPin,
   QrCode,
   ScanFace,
 } from "lucide-react";
 
+import { Scanner } from "@yudiel/react-qr-scanner";
 import { LivenessDetector } from "@/components/liveness-detector";
 
-type Method = "gps" | "facial" | "qr";
+type Method = "facial" | "qr";
 
-const METHODS: { id: Method; label: string; icon: typeof MapPin }[] = [
-  { id: "gps", label: "GPS", icon: MapPin },
-  { id: "facial", label: "Rostro", icon: ScanFace },
+const METHODS: { id: Method; label: string; icon: typeof ScanFace }[] = [
+  { id: "facial", label: "Biometría Facial", icon: ScanFace },
   { id: "qr", label: "Código QR", icon: QrCode },
 ];
 
-function ScanFrame() {
-  const base = "absolute size-6 border-white/80";
-  return (
-    <>
-      <span
-        className={`${base} left-4 top-4 border-l-4 border-t-4 rounded-tl-sm`}
-      />
-      <span
-        className={`${base} right-4 top-4 border-r-4 border-t-4 rounded-tr-sm`}
-      />
-      <span
-        className={`${base} bottom-4 left-4 border-b-4 border-l-4 rounded-bl-sm`}
-      />
-      <span
-        className={`${base} bottom-4 right-4 border-b-4 border-r-4 rounded-br-sm`}
-      />
-    </>
-  );
-}
-
 export default function AttendanceNewPage() {
   const [now, setNow] = useState<Date | null>(null);
-  const [method, setMethod] = useState<Method>("gps");
-  const [isInsideGeofence] = useState(true);
+  const [method, setMethod] = useState<Method>("facial");
+  const [isInsideGeofence] = useState(true); // Se asume validado por GPS en background
+
+  // Estados de flujo
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState<"Entrada" | "Salida" | null>(null);
 
-  // Guardamos si la prueba biométrica de AWS fue aprobada con éxito
-  const [livenessVerified, setLivenessVerified] = useState(false);
   const [livenessError, setLivenessError] = useState<string | null>(null);
 
+  // Historial del día
   const [marks, setMarks] = useState<{
     entrada: string | null;
     salida: string | null;
@@ -91,37 +73,57 @@ export default function AttendanceNewPage() {
       })
     : "";
 
-  // En GPS requiere estar en geocerca, en facial requiere pasar la prueba Liveness
-  const blocked =
-    (method === "gps" && !isInsideGeofence) ||
-    (method === "facial" && !livenessVerified);
+  // EJECUCIÓN AUTOMÁTICA AL PASAR LA PRUEBA (Facial o QR)
+  const handleClockIn = async (verificationData: any, methodUsed: string) => {
+    // Si no está en la geocerca, bloqueamos el registro
+    if (!isInsideGeofence) return;
 
-  const handleClockIn = () => {
     const type = nextType;
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      // ---------------------------------------------------------
+      // AQUÍ VA TU LÓGICA DE BASE DE DATOS (SUPABASE / BACKEND)
+      // Ejemplo:
+      // await registrarAsistencia({
+      //   tipo: type, // 'Entrada' o 'Salida'
+      //   metodo: methodUsed, // 'facial' o 'qr'
+      //   codigoBiometricoOQR: verificationData
+      // });
+      // ---------------------------------------------------------
+
+      // Simulamos el tiempo de red
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       const stamp = new Date().toLocaleTimeString("es-PE", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
       });
+
       setMarks((prev) =>
         type === "Entrada"
           ? { entrada: stamp, salida: null }
           : { ...prev, salida: stamp },
       );
+
       setLoading(false);
       setDone(type);
-      setLivenessVerified(false); // Reiniciar estado
-      setTimeout(() => setDone(null), 3500);
-    }, 1200);
-  };
+      setIsCameraActive(false); // Apagamos la cámara automáticamente
 
-  const ActionIcon = nextType === "Entrada" ? LogIn : LogOut;
+      // Limpiamos el mensaje de éxito después de unos segundos
+      setTimeout(() => setDone(null), 4000);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+      setIsCameraActive(false);
+      setLivenessError("Hubo un error al registrar en la base de datos.");
+    }
+  };
 
   return (
     <div className="w-full flex flex-col gap-5 sm:gap-6">
-      {/* 1. INFORMACIÓN DE LA SEDE Y ESTADO */}
+      {/* 1. INFORMACIÓN DE LA SEDE Y ESTADO GPS DE FONDO */}
       <Card className="rounded-2xl border-2 border-border shadow-none p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card">
         <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
           <div className="size-10 rounded-xl bg-neutral-900 text-white dark:bg-foreground dark:text-background border-2 border-border flex items-center justify-center font-bold shrink-0">
@@ -132,7 +134,7 @@ export default function AttendanceNewPage() {
               Sede Central, Aula 204
             </h1>
             <p className="text-xs text-muted-foreground font-medium truncate">
-              Ubicación con control biométrico habilitado
+              Control biométrico y GPS activo
             </p>
           </div>
         </div>
@@ -144,7 +146,7 @@ export default function AttendanceNewPage() {
               : "bg-red-600 text-white"
           }`}
         >
-          {isInsideGeofence ? "En la sede" : "Fuera de la sede"}
+          {isInsideGeofence ? "Dentro del perímetro" : "Fuera del perímetro"}
         </Badge>
       </Card>
 
@@ -171,12 +173,10 @@ export default function AttendanceNewPage() {
               </span>
             </div>
 
-            {/* Registros de hoy */}
             <div className="flex flex-col gap-3">
               <span className="text-xs font-bold text-neutral-400">
                 Registros de hoy
               </span>
-
               <div className="grid grid-cols-2 gap-3 w-full">
                 <div className="p-3 rounded-xl border-2 border-neutral-800 dark:border-border bg-neutral-950/50 flex flex-col gap-1 min-w-0">
                   <span className="text-xs font-bold text-neutral-400 flex items-center gap-1.5 truncate">
@@ -200,35 +200,36 @@ export default function AttendanceNewPage() {
             </div>
           </div>
 
-          {/* PANEL DERECHO: Verificación y Acción */}
-          <div className="lg:col-span-7 p-5 sm:p-7 lg:p-8 flex flex-col justify-between gap-6 sm:gap-8 bg-card">
+          {/* PANEL DERECHO: Verificación Automática */}
+          <div className="lg:col-span-7 p-5 sm:p-7 lg:p-8 flex flex-col gap-6 bg-card">
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-0.5">
                 <h2 className="text-xs font-bold text-muted-foreground">
-                  Método de verificación
+                  Marcaje Automático ({nextType})
                 </h2>
                 <p className="text-xs sm:text-sm text-foreground font-semibold">
-                  Selecciona la vía para validar tu presencia
+                  Selecciona tu método de validación
                 </p>
               </div>
 
-              {/* Selector de Método */}
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 bg-muted rounded-xl border-2 border-border w-full">
+              {/* Selector de Método (Solo 2 Opciones) */}
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2 p-1.5 bg-muted rounded-xl border-2 border-border w-full">
                 {METHODS.map(({ id, label, icon: Icon }) => {
                   const active = method === id;
                   return (
                     <button
                       key={id}
                       type="button"
+                      disabled={loading || done !== null}
                       onClick={() => {
                         setMethod(id);
-                        setLivenessVerified(false);
+                        setIsCameraActive(false);
                         setLivenessError(null);
                       }}
                       className={`flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg py-2.5 px-2 sm:px-3 text-xs font-bold transition-all min-w-0 ${
                         active
-                          ? "bg-primary text-primary-foreground border-2 border-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-card"
+                          ? "bg-primary text-primary-foreground border-2 border-primary shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-card disabled:opacity-50"
                       }`}
                     >
                       <Icon className="size-4 shrink-0" />
@@ -239,103 +240,121 @@ export default function AttendanceNewPage() {
               </div>
             </div>
 
-            {/* Visualizador de Escáner / GPS / AWS Liveness */}
-            <div className="flex-1 flex flex-col justify-center min-h-[180px]">
-              {method === "gps" && (
-                <div
-                  className={`flex flex-col justify-center gap-2 rounded-xl sm:rounded-2xl p-5 sm:p-6 border-2 text-white transition-all ${
-                    isInsideGeofence
-                      ? "bg-emerald-600 border-emerald-700"
-                      : "bg-red-600 border-red-700"
-                  }`}
-                >
-                  <MapPin className="size-6 sm:size-7 opacity-90 shrink-0" />
-                  <p className="text-xs sm:text-sm font-bold leading-relaxed">
-                    {isInsideGeofence
-                      ? "Estás dentro de la sede permitida. Confirmación por GPS lista."
-                      : "Estás fuera del radio de la sede. Acércate para registrar tu asistencia."}
+            {/* VISUALIZADOR DE CÁMARA O ESTADOS */}
+            <div className="flex-1 flex flex-col justify-center min-h-[340px]">
+              {/* ESTADOS GLOBALES (Cargando o Éxito) */}
+              {loading ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 animate-pulse">
+                  <div className="size-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <Clock className="size-7 animate-spin" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-foreground">
+                      Procesando {nextType}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Validando datos y guardando registro...
+                    </p>
+                  </div>
+                </div>
+              ) : done ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3">
+                  <div className="size-14 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                    <Check className="size-7" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-emerald-600">
+                      {done} confirmada
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Tu asistencia ha sido registrada correctamente.
+                    </p>
+                  </div>
+                </div>
+              ) : !isInsideGeofence ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 p-6 border-2 border-red-500/20 bg-red-500/5 rounded-2xl text-center">
+                  <MapPin className="size-8 text-red-500" />
+                  <p className="text-sm font-bold text-red-600">
+                    Fuera del área permitida
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Debes estar en las instalaciones para habilitar la cámara y
+                    marcar tu asistencia.
                   </p>
                 </div>
-              )}
-
-              {/* AQUÍ CONECTAMOS AMAZON REKOGNITION FACE LIVENESS */}
-              {method === "facial" && (
-                <div className="w-full flex flex-col gap-2">
-                  {livenessVerified ? (
-                    <div className="p-4 rounded-2xl bg-emerald-600 border-2 border-emerald-700 text-white flex items-center gap-3">
-                      <Check className="size-6 shrink-0" />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold">
-                          Prueba Biométrica Aprobada
-                        </span>
-                        <span className="text-[11px] opacity-90">
-                          Rostro real verificado por AWS Rekognition.
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
+              ) : !isCameraActive ? (
+                /* ESTADO: CÁMARA APAGADA (Esperando acción del usuario) */
+                <div className="flex flex-col items-center justify-center h-full gap-4 p-8 border-2 border-dashed border-border rounded-2xl bg-muted/30">
+                  <div className="size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                    {method === "facial" ? (
+                      <Camera className="size-8" />
+                    ) : (
+                      <QrCode className="size-8" />
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-foreground">
+                      {method === "facial"
+                        ? "Escáner Biométrico Inactivo"
+                        : "Lector QR Inactivo"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1 mb-4">
+                      {method === "facial"
+                        ? "Enciende la cámara para realizar la validación de presencia."
+                        : "Enciende la cámara para escanear tu fotocheck."}
+                    </p>
+                    <Button
+                      onClick={() => setIsCameraActive(true)}
+                      className="font-bold text-xs"
+                    >
+                      Encender {method === "facial" ? "cámara" : "escáner"}
+                    </Button>
+                  </div>
+                  {livenessError && (
+                    <p className="text-xs font-bold text-red-500 mt-2">
+                      {livenessError}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                /* ESTADO: CÁMARA ENCENDIDA (Facial o QR) */
+                <div className="w-full h-full flex flex-col justify-center animate-in fade-in zoom-in-95 duration-300">
+                  {method === "facial" && (
                     <LivenessDetector
-                      onSuccess={(referenceImage) => {
-                        setLivenessVerified(true);
-                        setLivenessError(null);
-                      }}
+                      onSuccess={(referenceImage) =>
+                        handleClockIn(referenceImage, "facial")
+                      }
                       onError={(msg) => {
-                        setLivenessVerified(false);
+                        setIsCameraActive(false);
                         setLivenessError(msg);
                       }}
                     />
                   )}
 
-                  {livenessError && (
-                    <p className="text-xs font-bold text-red-500 mt-1">
-                      {livenessError}
-                    </p>
+                  {method === "qr" && (
+                    <div className="relative flex w-full max-w-sm mx-auto items-center justify-center rounded-2xl overflow-hidden border-2 border-border bg-black aspect-square">
+                      <Scanner
+                        onScan={(result) => {
+                          if (result && result.length > 0) {
+                            handleClockIn(result[0].rawValue, "qr");
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-x-12 top-1/2 h-0.5 -translate-y-1/2 bg-primary/80 animate-pulse shadow-[0_0_15px_rgba(var(--primary),0.8)]" />
+                      <span className="absolute bottom-4 rounded-md bg-neutral-900/90 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md border border-neutral-700">
+                        Apunta el código a la cámara
+                      </span>
+                      <button
+                        onClick={() => setIsCameraActive(false)}
+                        className="absolute top-4 right-4 bg-neutral-900/80 text-white p-2 rounded-full backdrop-blur-md text-xs font-bold"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
-
-              {method === "qr" && (
-                <div className="relative flex h-40 sm:h-48 items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 border-2 border-border text-white overflow-hidden p-4">
-                  <ScanFrame />
-                  <QrCode className="size-10 text-neutral-500 shrink-0" />
-                  <div className="absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 bg-primary animate-pulse" />
-                  <span className="absolute bottom-3 rounded-md bg-neutral-800 px-3 py-1 text-xs font-bold text-neutral-300 border border-neutral-700 text-center max-w-[90%] truncate">
-                    Apunta tu credencial al lector
-                  </span>
-                </div>
-              )}
             </div>
-
-            {/* BOTÓN DE ACCIÓN PRINCIPAL */}
-            <Button
-              size="lg"
-              onClick={handleClockIn}
-              disabled={loading || blocked || done !== null}
-              className={`h-12 w-full gap-2 rounded-xl text-xs sm:text-sm font-bold border-2 transition-all active:scale-[0.98] ${
-                done
-                  ? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
-                  : blocked
-                    ? "bg-muted text-muted-foreground border-border cursor-not-allowed"
-                    : "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
-              }`}
-            >
-              {done ? (
-                <>
-                  <Check className="size-4 shrink-0" />
-                  <span>{done} registrada con éxito</span>
-                </>
-              ) : loading ? (
-                <>
-                  <Clock className="size-4 animate-spin shrink-0" />
-                  <span>Procesando marcaje...</span>
-                </>
-              ) : (
-                <>
-                  <ActionIcon className="size-4 shrink-0" />
-                  <span>Registrar {nextType.toLowerCase()}</span>
-                </>
-              )}
-            </Button>
           </div>
         </div>
       </Card>

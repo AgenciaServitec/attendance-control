@@ -33,8 +33,8 @@ export default async function DashboardHubPage() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-3xl flex flex-col gap-6">
+    <div className="w-full bg-background flex flex-col items-center justify-center">
+      <div className="w-full flex flex-col gap-6">
         {/* Cabecera del Portal Directa y Limpia */}
         <div className="flex flex-col gap-1 text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">

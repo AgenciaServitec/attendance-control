@@ -3,33 +3,24 @@
 import * as React from "react";
 import {
   IconAdjustments,
-  IconBellRinging,
-  IconBuilding,
   IconCalendarTime,
   IconClockCheck,
   IconDashboard,
-  IconDeviceDesktop,
-  IconFileAnalytics,
-  IconFileDescription,
   IconHelp,
   IconList,
-  IconMapPin,
   IconPlus,
   IconSettings,
   IconShieldLock,
-  IconUserCheck,
   IconUsers,
 } from "@tabler/icons-react";
-import { School } from "lucide-react";
+import { Group } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
-import { NavUser } from "@/components/nav-user";
 import { OrgSwitcher } from "@/components/_org-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useUserStore } from "@/store/use-user-store";
@@ -58,13 +49,7 @@ const data = {
       icon: IconAdjustments,
       items: [
         {
-          title: "Empresas / Sedes",
-          url: "/administration/organizations",
-          icon: IconBuilding,
-        },
-        {
-          title: "Usuarios / Alumnos",
-          url: "/administration/users",
+          title: "Usuarios",
           icon: IconUsers,
           items: [
             {
@@ -80,18 +65,7 @@ const data = {
           ],
         },
         {
-          title: "Dispositivos / IPs",
-          url: "/administration/devices",
-          icon: IconDeviceDesktop,
-        },
-        {
-          title: "Alertas y Tolerancias",
-          url: "/administration/alerts",
-          icon: IconBellRinging,
-        },
-        {
           title: "Roles & Permisos",
-          url: "/administration/roles",
           icon: IconShieldLock,
           items: [
             {
@@ -106,86 +80,44 @@ const data = {
             },
           ],
         },
+        {
+          title: "Grupos",
+          icon: Group,
+          items: [
+            {
+              title: "Crear Grupo",
+              url: "/administration/groups/new",
+              icon: IconPlus,
+            },
+            {
+              title: "Lista de Grupos",
+              url: "/administration/groups",
+              icon: IconList,
+            },
+          ],
+        },
+        {
+          title: "Horarios",
+          icon: IconCalendarTime,
+          items: [
+            {
+              title: "Crear Horario",
+              url: "/schedules/new",
+              icon: IconList,
+            },
+            {
+              title: "Lista de Horarios",
+              url: "/schedules",
+              icon: IconPlus,
+            },
+          ],
+        },
       ],
     },
     {
-      title: "Control de Asistencia",
+      title: "Mis Asistencias",
+      url: "/attendance",
       icon: IconClockCheck,
-      items: [
-        {
-          title: "Mis Marcaciones",
-          url: "/attendance/my-logs",
-          icon: IconUserCheck,
-        },
-        {
-          title: "Registro General",
-          url: "/attendance/logs",
-          icon: IconList,
-        },
-        {
-          title: "Puntos y Geocercas",
-          url: "/attendance/locations",
-          icon: IconMapPin,
-        },
-      ],
-    },
-    {
-      title: "Estructura y Grupos",
-      icon: School,
-      items: [
-        {
-          title: "Aulas / Áreas",
-          url: "/groups/classrooms",
-          icon: IconList,
-        },
-        {
-          title: "Grupos de Trabajo",
-          url: "/groups/teams",
-          icon: IconPlus,
-        },
-      ],
-    },
-    {
-      title: "Horarios y Turnos",
-      icon: IconCalendarTime,
-      items: [
-        {
-          title: "Asignación de Horarios",
-          url: "/schedules/assignments",
-          icon: IconList,
-        },
-        {
-          title: "Configurar Turnos",
-          url: "/schedules/manage",
-          icon: IconPlus,
-        },
-      ],
-    },
-    {
-      title: "Permisos y Licencias",
-      icon: IconFileDescription,
-      items: [
-        {
-          title: "Solicitar Permiso",
-          url: "/requests/new",
-          icon: IconPlus,
-        },
-        {
-          title: "Mis Solicitudes",
-          url: "/requests/my-requests",
-          icon: IconList,
-        },
-        {
-          title: "Aprobaciones",
-          url: "/requests/approvals",
-          icon: IconClockCheck,
-        },
-      ],
-    },
-    {
-      title: "Reportes e Incidencias",
-      url: "/reports",
-      icon: IconFileAnalytics,
     },
   ],
   navSecondary: [

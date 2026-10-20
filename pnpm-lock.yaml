@@ -46,7 +46,7 @@ importers:
         version: 12.7.0(supports-color@8.1.1)
       firebase-functions:
         specifier: ^6.0.1
-        version: 6.6.0(firebase-admin@12.7.0(supports-color@8.1.1))(supports-color@8.1.1)
+        version: 6.6.0(firebase-administration@12.7.0(supports-color@8.1.1))(supports-color@8.1.1)
       jest:
         specifier: ^30.2.0
         version: 30.4.2(@types/node@24.13.3)(supports-color@8.1.1)
@@ -110,7 +110,7 @@ importers:
         version: 2.32.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1(supports-color@8.1.1))(supports-color@8.1.1)(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1(supports-color@8.1.1))(supports-color@8.1.1)
       firebase-functions-test:
         specifier: ^3.1.0
-        version: 3.5.0(firebase-admin@12.7.0(supports-color@8.1.1))(firebase-functions@6.6.0(firebase-admin@12.7.0(supports-color@8.1.1))(supports-color@8.1.1))(jest@30.4.2(@types/node@24.13.3)(supports-color@8.1.1))
+        version: 3.5.0(firebase-administration@12.7.0(supports-color@8.1.1))(firebase-functions@6.6.0(firebase-administration@12.7.0(supports-color@8.1.1))(supports-color@8.1.1))(jest@30.4.2(@types/node@24.13.3)(supports-color@8.1.1))
       typescript:
         specifier: ^5.7.3
         version: 5.9.2
@@ -11129,7 +11129,7 @@ snapshots:
     dependencies:
       '@types/lodash': 4.17.25
       firebase-admin: 12.7.0(supports-color@8.1.1)
-      firebase-functions: 6.6.0(firebase-admin@12.7.0(supports-color@8.1.1))(supports-color@8.1.1)
+      firebase-functions: 6.6.0(firebase-administration@12.7.0(supports-color@8.1.1))(supports-color@8.1.1)
       jest: 30.4.2(@types/node@24.13.3)(supports-color@8.1.1)
       lodash: 4.18.1
       ts-deepmerge: 2.0.7
