@@ -24,11 +24,10 @@ export async function getCurrentUser() {
 
   const { data: member } = await supabase
     .from("organization_members")
-    .select("role, organization:organizations(id, business_name, ruc)")
-    .eq("user_id", user.id)
-    .single();
+    .select("role, organization:organizations(id, business_name, ruc, address)")
+    .eq("user_id", user.id);
 
-  console.log("[MEMBER]: ", { member });
+  console.log("[MEMBER]: ", member);
 
   return {
     id: user.id,
@@ -41,9 +40,8 @@ export async function getCurrentUser() {
     fullName: profile
       ? `${profile.first_name} ${profile.paternal_surname}`.trim()
       : user.email?.split("@")[0] || "Usuario",
-    role: member?.role || "member",
-    organization: member?.organization || null,
-    // Mapeo de URLs de fotos
+    role: "member",
+    organization: member || null,
     avatarUrl: profile?.avatar_url || null,
     coverUrl: profile?.cover_url || null,
   };

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Briefcase, Building2, Plus } from "lucide-react";
+import { IconLocation } from "@tabler/icons-react";
 
 export default async function DashboardHubPage() {
   const user = await getCurrentUser();
@@ -21,9 +22,7 @@ export default async function DashboardHubPage() {
 
   // Normalización segura de la lista de organizaciones
   const rawOrgs = user?.organization || [];
-  const organizations = Array.isArray(rawOrgs)
-    ? rawOrgs
-    : Object.values(rawOrgs);
+  const organizations = rawOrgs;
 
   // Redirección automática si solo pertenece a una empresa
   if (organizations.length === 1) {
@@ -57,7 +56,7 @@ export default async function DashboardHubPage() {
               const orgSlug = org.slug || org.id;
               const isAdmin = org.role === "admin";
               const businessName =
-                org.business_name || org.businessName || "Organización";
+                org.organization.business_name.toUpperCase() || "Organización";
 
               return (
                 <Link
@@ -89,9 +88,16 @@ export default async function DashboardHubPage() {
                         <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                           {businessName}
                         </CardTitle>
-                        <CardDescription className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
-                          <Briefcase className="size-3 text-muted-foreground shrink-0" />
-                          RUC: {org.ruc || "Sin RUC registrado"}
+                        <CardDescription className="text-xs font-normal text-muted-foreground flex flex-col gap-1.5">
+                          <div className="flex gap-1 5">
+                            <Briefcase className="size-3 text-muted-foreground shrink-0" />
+                            RUC: {org.organization.ruc || "Sin RUC registrado"}
+                          </div>
+                          <div className="flex gap-1 5">
+                            <IconLocation className="size-3 text-muted-foreground shrink-0" />
+                            Dirección:{" "}
+                            {org.organization.address || "Sin dirección"}
+                          </div>
                         </CardDescription>
                       </div>
                     </CardHeader>

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, QrCode } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
 interface Props {
@@ -9,14 +9,15 @@ interface Props {
 
 export function Social({ method, onSetMethod }: Props) {
   return (
-    <div className="grid gap-3 mt-3">
+    <div className="grid grid-cols-3 gap-3 mt-4">
+      {/* Google */}
       <Button
         variant="outline"
         type="button"
-        className="w-full justify-center bg-secondary/40 hover:bg-secondary/80 border-border/80 text-foreground h-10 font-normal transition-colors"
+        className="flex flex-col items-center justify-center h-20 p-2 rounded-xl border-border/80 bg-background hover:bg-muted/50 transition-colors shadow-sm"
         onClick={() => console.log("Google Auth")}
       >
-        <svg className="mr-2 h-4 w-4" viewBox="0 0 16 16">
+        <svg className="h-6 w-6 mb-1.5" viewBox="0 0 16 16">
           <path d="M0 0h16v16H0z" fill="none" />
           <path
             fill="#f44336"
@@ -39,53 +40,58 @@ export function Social({ method, onSetMethod }: Props) {
             opacity=".993"
           />
         </svg>
-        Continuar con Google
+        <span className="text-xs font-medium text-foreground">Google</span>
       </Button>
 
+      {/* Apple */}
       <Button
         variant="outline"
         type="button"
-        className="w-full justify-center bg-secondary/40 hover:bg-secondary/80 border-border/80 text-foreground h-10 font-normal transition-colors"
+        className="flex flex-col items-center justify-center h-20 p-2 rounded-xl border-border/80 bg-background hover:bg-muted/50 transition-colors shadow-sm"
         onClick={() => console.log("Apple Auth")}
       >
-        <svg className="mr-2 h-4 w-4" viewBox="0 0 32 32">
+        <svg
+          className="h-6 w-6 mb-1.5 fill-current text-foreground"
+          viewBox="0 0 32 32"
+        >
           <path d="M0 0h32v32H0z" fill="none" />
-          <path
-            fill="#000000"
-            d="M25.425 26.498c-1.162 1.736-2.394 3.43-4.27 3.458c-1.875.042-2.477-1.106-4.605-1.106c-2.142 0-2.8 1.078-4.578 1.148c-1.834.07-3.22-1.848-4.396-3.542C5.183 23 3.35 16.63 5.813 12.346a6.84 6.84 0 0 1 5.767-3.514c1.792-.028 3.5 1.217 4.606 1.217c1.092 0 3.164-1.497 5.334-1.273a6.5 6.5 0 0 1 5.095 2.771a6.38 6.38 0 0 0-3.01 5.334a6.18 6.18 0 0 0 3.752 5.656a15.5 15.5 0 0 1-1.932 3.961M17.432 4.1A6.36 6.36 0 0 1 21.548 2a6.13 6.13 0 0 1-1.456 4.466a5.11 5.11 0 0 1-4.13 1.988a5.98 5.98 0 0 1 1.47-4.354"
-          />
+          <path d="M25.425 26.498c-1.162 1.736-2.394 3.43-4.27 3.458c-1.875.042-2.477-1.106-4.605-1.106c-2.142 0-2.8 1.078-4.578 1.148c-1.834.07-3.22-1.848-4.396-3.542C5.183 23 3.35 16.63 5.813 12.346a6.84 6.84 0 0 1 5.767-3.514c1.792-.028 3.5 1.217 4.606 1.217c1.092 0 3.164-1.497 5.334-1.273a6.5 6.5 0 0 1 5.095 2.771a6.38 6.38 0 0 0-3.01 5.334a6.18 6.18 0 0 0 3.752 5.656a15.5 15.5 0 0 1-1.932 3.961M17.432 4.1A6.36 6.36 0 0 1 21.548 2a6.13 6.13 0 0 1-1.456 4.466a5.11 5.11 0 0 1-4.13 1.988a5.98 5.98 0 0 1 1.47-4.354" />
         </svg>
-        Continuar con Apple
+        <span className="text-xs font-medium text-foreground">Apple</span>
       </Button>
 
+      {/* Email / Teléfono */}
       <Button
         variant="outline"
         type="button"
-        className="w-full justify-center bg-secondary/40 hover:bg-secondary/80 border-border/80 text-foreground h-10 font-normal transition-colors"
+        className="flex flex-col items-center justify-center h-20 p-2 rounded-xl border-border/80 bg-background hover:bg-muted/50 transition-colors shadow-sm"
         onClick={() => onSetMethod(method === "phone" ? "email" : "phone")}
       >
         {method === "phone" ? (
           <>
-            <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-            Continuar con Email
+            <Mail className="h-6 w-6 mb-1.5 text-foreground" />
+            <span className="text-xs font-medium text-foreground">Email</span>
           </>
         ) : (
           <>
-            <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-            Continuar con Teléfono
+            <Phone className="h-6 w-6 mb-1.5 text-foreground" />
+            <span className="text-xs font-medium text-foreground">
+              Teléfono
+            </span>
           </>
         )}
       </Button>
 
-      <Button
-        variant="outline"
-        type="button"
-        className="w-full justify-center bg-secondary/40 hover:bg-secondary/80 border-border/80 text-foreground h-10 font-normal transition-colors"
-        onClick={() => console.log("Login QR")}
-      >
-        <QrCode className="mr-2 h-4 w-4 text-muted-foreground" />
-        Acceso rápido con código QR
-      </Button>
+      {/* Acceso con QR */}
+      {/*<Button*/}
+      {/*  variant="outline"*/}
+      {/*  type="button"*/}
+      {/*  className="flex flex-col items-center justify-center h-20 p-2 rounded-xl border-border/80 bg-background hover:bg-muted/50 transition-colors shadow-sm"*/}
+      {/*  onClick={() => console.log("Login QR")}*/}
+      {/*>*/}
+      {/*  <QrCode className="h-6 w-6 mb-1.5 text-foreground" />*/}
+      {/*  <span className="text-xs font-medium text-foreground">Código QR</span>*/}
+      {/*</Button>*/}
     </div>
   );
 }
