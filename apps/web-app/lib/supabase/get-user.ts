@@ -8,8 +8,6 @@ export async function getCurrentUser() {
     error: authError,
   } = await supabase.auth.getUser();
 
-  console.log("[USER]: ", { user });
-
   if (authError || !user) {
     return null;
   }
@@ -20,14 +18,10 @@ export async function getCurrentUser() {
     .eq("id", user.id)
     .single();
 
-  console.log("[PROFILE]: ", { profile });
-
   const { data: member } = await supabase
     .from("organization_members")
     .select("role, organization:organizations(id, business_name, ruc, address)")
     .eq("user_id", user.id);
-
-  console.log("[MEMBER]: ", member);
 
   return {
     id: user.id,
@@ -41,7 +35,7 @@ export async function getCurrentUser() {
       ? `${profile.first_name} ${profile.paternal_surname}`.trim()
       : user.email?.split("@")[0] || "Usuario",
     role: "member",
-    organization: member || null,
+    organizations: member || null,
     avatarUrl: profile?.avatar_url || null,
     coverUrl: profile?.cover_url || null,
   };

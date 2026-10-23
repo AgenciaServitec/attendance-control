@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getCurrentUser } from "@/lib/supabase/get-user";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Briefcase, Building2, Plus } from "lucide-react";
 import { IconLocation } from "@tabler/icons-react";
+import Link from "next/link";
 
 export default async function DashboardHubPage() {
   const user = await getCurrentUser();
@@ -21,7 +21,7 @@ export default async function DashboardHubPage() {
   }
 
   // Normalización segura de la lista de organizaciones
-  const rawOrgs = user?.organization || [];
+  const rawOrgs = user?.organizations || [];
   const organizations = rawOrgs;
 
   // Redirección automática si solo pertenece a una empresa
@@ -53,72 +53,66 @@ export default async function DashboardHubPage() {
           {/* Grilla de 2 Columnas con Tarjetas Internas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {organizations.map((org: any) => {
-              const orgSlug = org.slug || org.id;
-              const isAdmin = org.role === "admin";
+              const organization = org.organization;
+              const isAdmin = organization.role === "admin";
               const businessName =
-                org.organization.business_name.toUpperCase() || "Organización";
+                organization.business_name.toUpperCase() || "Organización";
 
               return (
-                <Link
-                  key={org.id || orgSlug}
-                  href={`/${orgSlug}/clock-in`}
-                  className="group outline-none"
+                <Card
+                  key={organization.id}
+                  className="h-full rounded-2xl border-2 border-dashed border-border bg-background shadow-none hover:border-primary transition-all duration-200 flex flex-col justify-between overflow-hidden cursor-pointer active:scale-[0.99]"
                 >
-                  <Card className="h-full rounded-2xl border-2 border-dashed border-border bg-background shadow-none hover:border-primary transition-all duration-200 flex flex-col justify-between overflow-hidden cursor-pointer active:scale-[0.99]">
-                    <CardHeader className="p-5 pb-3">
-                      {/* Header de Tarjeta: Ícono Sólido + Badge de Rol en Fondo Sólido */}
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="size-10 rounded-xl bg-neutral-900 text-white dark:bg-foreground dark:text-background border-2 border-border flex items-center justify-center font-bold shrink-0 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors">
-                          <Building2 className="size-5 shrink-0" />
+                  <CardHeader className="p-5 pb-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="size-10 rounded-xl bg-neutral-900 text-white dark:bg-foreground dark:text-background border-2 border-border flex items-center justify-center font-bold shrink-0 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors">
+                        <Building2 className="size-5 shrink-0" />
+                      </div>
+
+                      <Badge
+                        className={`text-[10px] font-bold px-2.5 py-1 rounded-md border-none ${
+                          isAdmin
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-neutral-800 text-white dark:bg-neutral-200 dark:text-neutral-900"
+                        }`}
+                      >
+                        {isAdmin ? "Administrador" : "Empleado"}
+                      </Badge>
+                    </div>
+
+                    <div className="mt-4 flex flex-col gap-0.5">
+                      <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                        {businessName}
+                      </CardTitle>
+                      <CardDescription className="text-xs font-normal text-muted-foreground flex flex-col gap-1.5">
+                        <div className="flex gap-1 5">
+                          <Briefcase className="size-3 text-muted-foreground shrink-0" />
+                          RUC: {organization.ruc || "Sin RUC registrado"}
                         </div>
+                        <div className="flex gap-1 5">
+                          <IconLocation className="size-3 text-muted-foreground shrink-0" />
+                          Dirección: {organization.address || "Sin dirección"}
+                        </div>
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
 
-                        <Badge
-                          className={`text-[10px] font-bold px-2.5 py-1 rounded-md border-none ${
-                            isAdmin
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-neutral-800 text-white dark:bg-neutral-200 dark:text-neutral-900"
-                          }`}
-                        >
-                          {isAdmin ? "Administrador" : "Empleado"}
-                        </Badge>
-                      </div>
+                  <CardContent className="px-5 pb-4 pt-2 flex items-center justify-between border-t border-border/80 text-xs font-semibold">
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      Acceso habilitado
+                    </span>
 
-                      {/* Razón Social */}
-                      <div className="mt-4 flex flex-col gap-0.5">
-                        <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                          {businessName}
-                        </CardTitle>
-                        <CardDescription className="text-xs font-normal text-muted-foreground flex flex-col gap-1.5">
-                          <div className="flex gap-1 5">
-                            <Briefcase className="size-3 text-muted-foreground shrink-0" />
-                            RUC: {org.organization.ruc || "Sin RUC registrado"}
-                          </div>
-                          <div className="flex gap-1 5">
-                            <IconLocation className="size-3 text-muted-foreground shrink-0" />
-                            Dirección:{" "}
-                            {org.organization.address || "Sin dirección"}
-                          </div>
-                        </CardDescription>
-                      </div>
-                    </CardHeader>
-
-                    {/* Footer de Tarjeta con Acción Sólida */}
-                    <CardContent className="px-5 pb-4 pt-2 flex items-center justify-between border-t border-border/80 text-xs font-semibold">
-                      <span className="text-[11px] text-muted-foreground font-medium">
-                        Acceso habilitado
-                      </span>
-
-                      <span className="inline-flex items-center gap-1.5 text-foreground font-bold group-hover:text-primary group-hover:translate-x-1 transition-all">
-                        Ingresar
-                        <ArrowRight className="size-4 text-primary" />
-                      </span>
-                    </CardContent>
-                  </Card>
-                </Link>
+                    <Link href={`organizations/${organization.id}`}>
+                      Administrar
+                    </Link>
+                    <Link href={`/${organization.id}/attendance/new`}>
+                      Ingresar
+                    </Link>
+                  </CardContent>
+                </Card>
               );
             })}
 
-            {/* Tarjeta de Acción: Agregar Nueva Organización */}
             <Card className="h-full min-h-[170px] rounded-2xl border-2 border-dashed border-border bg-background shadow-none flex flex-col items-center justify-center p-6 text-center hover:border-primary transition-all duration-200 group">
               <div className="size-10 rounded-xl bg-muted border-2 border-border flex items-center justify-center text-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors mb-2.5">
                 <Plus className="size-5" />

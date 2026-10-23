@@ -137,10 +137,12 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useUserStore((state) => state.user);
 
+  console.log("user: ", user);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        <OrgSwitcher organizations={data.organizations} />
+        <OrgSwitcher organizations={user?.organizations || []} />
       </SidebarHeader>
 
       <SidebarContent>

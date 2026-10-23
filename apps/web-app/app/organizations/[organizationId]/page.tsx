@@ -7,7 +7,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/use-user-store";
-import { createOrganization } from "@/app/actions/organizations";
+import { createOrganization } from "@/app/actions/organizations-actions";
 import { useTransition } from "react";
 
 const schema = z.object({
@@ -26,8 +26,6 @@ interface OrganizationForm {
 export default function OrganitzationPage() {
   const [isPending, startTransition] = useTransition();
   const user = useUserStore((state) => state.user);
-
-  console.log("[USER - ORGANIZATION]: ", user);
 
   const onSubmit = (formData: Organization) => {
     const organization = {
