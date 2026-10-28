@@ -20,11 +20,9 @@ export default async function DashboardHubPage() {
     redirect("/login");
   }
 
-  // Normalización segura de la lista de organizaciones
   const rawOrgs = user?.organizations || [];
   const organizations = rawOrgs;
 
-  // Redirección automática si solo pertenece a una empresa
   if (organizations.length === 1) {
     const defaultSlug =
       (organizations[0] as any).slug || (organizations[0] as any).id;
@@ -34,7 +32,6 @@ export default async function DashboardHubPage() {
   return (
     <div className="w-full bg-background flex flex-col items-center justify-center">
       <div className="w-full flex flex-col gap-6">
-        {/* Cabecera del Portal Directa y Limpia */}
         <div className="flex flex-col gap-1 text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
             Selecciona tu Organización
@@ -48,9 +45,7 @@ export default async function DashboardHubPage() {
           </p>
         </div>
 
-        {/* CONTENEDOR ENVOLVENTE SÓLIDO (Sin celeste ni opacidades) */}
         <div className="w-full rounded-[24px] border-2 border-border bg-primary p-3 sm:p-4">
-          {/* Grilla de 2 Columnas con Tarjetas Internas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {organizations.map((org: any) => {
               const organization = org.organization;

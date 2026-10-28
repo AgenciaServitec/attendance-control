@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
-import { NotificationsSheet } from "./notifications";
 
 const data = {
   navMain: [
@@ -24,7 +23,7 @@ const data = {
       items: [
         {
           title: "Crear Empresa",
-          url: "/organizations/new",
+          url: "/organizations/create",
           icon: IconPlus,
         },
         {
