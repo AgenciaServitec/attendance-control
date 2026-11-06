@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { IconBuilding, IconPlus, IconUsers } from "@tabler/icons-react";
+import * as React from 'react';
+import { IconBuilding, IconPlus, IconUsers } from '@tabler/icons-react';
 
-import { NavMain } from "@/components/nav-main";
+import { NavMain } from '@/components/nav-main';
 import {
   Sidebar,
   SidebarContent,
@@ -11,40 +11,40 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import Link from "next/link";
-import Image from "next/image";
+} from '@/components/ui/sidebar';
+import Link from 'next/link';
+import Image from 'next/image';
 
 const data = {
   navMain: [
     {
-      title: "Organizaciones",
+      title: 'Organizaciones',
       icon: IconBuilding,
       items: [
         {
-          title: "Crear Empresa",
-          url: "/organizations/create",
+          title: 'Crear Organización',
+          url: '/organizations/create',
           icon: IconPlus,
         },
         {
-          title: "Lista de Empresas",
-          url: "/organizations",
+          title: 'Lista de Organizaciones',
+          url: '/organizations',
           icon: IconBuilding,
         },
       ],
     },
     {
-      title: "Usuarios",
+      title: 'Usuarios',
       icon: IconUsers,
       items: [
         {
-          title: "Crear Usuario",
-          url: "/users/new",
+          title: 'Crear Usuario',
+          url: '/users/create',
           icon: IconPlus,
         },
         {
-          title: "Lista de Usuarios",
-          url: "/users",
+          title: 'Lista de Usuarios',
+          url: '/users',
           icon: IconUsers,
         },
       ],
@@ -71,9 +71,7 @@ export function HubSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Servitec Time</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    Plan Educativo
-                  </span>
+                  <span className="truncate text-xs text-muted-foreground">Plan Educativo</span>
                 </div>
               </Link>
             </SidebarMenuButton>

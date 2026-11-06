@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/use-user-store";
-import { OrganizationCardItem } from "@/app/organizations/organization-card-item";
+import { OrganizationCardItem } from "@/app/(select-organization)/organizations/organization-card-item";
 import { IconCircleArrowLeft } from "@tabler/icons-react";
 
 export default function OrganizationsPage() {

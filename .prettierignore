@@ -1,0 +1,30 @@
+# dependencias
+node_modules
+.pnp
+.pnp.js
+
+# builds y caché de cualquier app (web, platform, api, etc.)
+**/ .next
+**/out
+**/dist
+**/.turbo
+**/build
+**/lib
+
+# firebase
+.firebase
+firebase-debug.log
+.firebaserc
+
+# archivos de lock
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# logs y cache
+*.log
+*.cache
+coverage
+
+# env
+.env*

@@ -8,8 +8,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
-    "check": "pnpm format:check && pnpm lint",
-    "fix": "pnpm format && pnpm lint:fix",
+    "prettier:check": "turbo run prettier:check",
+    "prettier:format": "turbo run prettier:format",
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
